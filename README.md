@@ -7,7 +7,7 @@ In addition, the application is also designed to perform a naive imputation meth
 Refer to the gtImputation manual (https://github.com/GGFHF/gtImputation/blob/master/Package/gtImputation-manual.pdf)
 for installation instructions, a description of the software and examples of use. Also, you can see the paper:
 
-Mora‐Márquez, F., Nuño J. C., Soto Á. & López de Heredia, U. (in review).
+Mora‐Márquez, F., Nuño J. C., Soto Á. & López de Heredia, U. (under review).
 Missing genotype imputation in non-model species using self-organizing maps.
 
 This software has been developed by:
