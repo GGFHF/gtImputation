@@ -1,6 +1,6 @@
 # gtImputation (Genotype Imputation)
 
-gtimputation (Genotype Imputation) gtImputation is an application designed to determine the genotypes of missing data
+gtimputation (Genotype Imputation) is an application designed to determine the genotypes of missing data
 in a VCF or tabular format file using a machine learning procedure based on self-organizing maps (SOMs) called SOM imputation.
 In addition, the application is also designed to perform a naive imputation method.
 
