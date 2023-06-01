@@ -11,8 +11,22 @@
 #
 # Licence: GNU General Public Licence Version 3.
 
-
-
+# This script uses the following software: NGShelper, Miniconda, BCFtools, Tabix and VCFtools.
+# First install NGShelper and Miniconda. Then install BCFtools, Tabix and VCF tools using the
+# Miniconda command conda. Installation instructions:
+#
+#    - NGSheelper: see https://github.com/GGFHF/NGShelper/
+#
+#    - Miniconda: see https://docs.conda.io/en/latest/miniconda.html
+#
+#    - BCFtool:
+#        $ conda create --yes --name bcftools bcftools
+#
+#    - Tabix:
+#        $ conda create --yes --name tabix tabix
+#
+#    - VCFtools:
+#        $ conda create --yes --name vcftools vcftools
 
 #-------------------------------------------------------------------------------
 
@@ -34,8 +48,8 @@ MPIWMD=10
 EXPERIMENT_ID=$DATASET_ID-$PROCESS_ID
 ROOT_NAME=test-$EXPERIMENT_ID
 
-DATA_DIR=$TRABAJO/SUBERINTRO-data
-OUTPUT_DIR=$TRABAJO/$ROOT_NAME
+OUTPUT_DIR=~/Documents/$ROOT_NAME
+mkdir --parents $OUTPUT_DIR
 
 VCF_PATH_0=$DATA_DIR/$DATASET_ID.vcf
 SAMPLES_PATH=$DATA_DIR/$DATASET_ID-samples.txt
