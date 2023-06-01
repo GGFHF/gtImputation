@@ -37,8 +37,8 @@ if [ -n "$*" ]; then echo 'This script has not parameters.'; exit 1; fi
 SEP="#########################################"
 
 MINIDONDA3_BIN=~/Miniconda3/bin
-NGSHELPER_DIR=~/Documents/NGShelper
-DATA_DIR=~/gtImputation-master/test-vcf-files
+NGSHELPER_DIR=~/Documents/NGShelper-master/Package
+DATA_DIR=~/Documents/gtImputation-main/test-vcf-files
 
 DATASET_ID=mr-QS
 PROCESS_ID=B
