@@ -15,7 +15,7 @@
 # First install NGShelper and Miniconda. Then install BCFtools, Tabix and VCF tools using the
 # Miniconda command conda. Installation instructions:
 #
-#    - NGSheelper: see https://github.com/GGFHF/NGShelper/
+#    - NGShelper: see https://github.com/GGFHF/NGShelper/
 #
 #    - Miniconda: see https://docs.conda.io/en/latest/miniconda.html
 #
@@ -38,7 +38,6 @@ SEP="#########################################"
 
 MINIDONDA3_BIN=~/Miniconda3/bin
 NGSHELPER_DIR=~/Documents/NGShelper-master/Package
-DATA_DIR=~/Documents/gtImputation-main/test-vcf-files
 
 DATASET_ID=mr-QS
 PROCESS_ID=B
@@ -47,7 +46,7 @@ MPIWMD=10
 
 EXPERIMENT_ID=$DATASET_ID-$PROCESS_ID
 ROOT_NAME=test-$EXPERIMENT_ID
-
+DATA_DIR=~/Documents/gtImputation-main/test-vcf-files
 OUTPUT_DIR=~/Documents/$ROOT_NAME
 mkdir --parents $OUTPUT_DIR
 
