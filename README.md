@@ -9,6 +9,7 @@ for installation instructions, a description of the software and examples of use
 
 Mora‐Márquez, F., Nuño J. C., Soto Á., & López de Heredia, U. (under review).
 Missing genotype imputation in non-model species using self-organizing maps.
+DOI: https://doi.org/10.22541/au.168596316.62218099/v1
 
 This software has been developed by:
 
