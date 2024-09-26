@@ -11,6 +11,7 @@
 '''
 This software has been developed by:
 
+    GI en Especies Leñosas (WooSp)
     Dpto. Sistemas y Recursos Naturales
     ETSI Montes, Forestal y del Medio Natural
     Universidad Politecnica de Madrid
@@ -34,11 +35,13 @@ def connect_database(database_path, check_same_thread=True):
     Connect to the database.
     '''
 
+    # connet to the database
     try:
         conn = sqlite3.connect(database_path, check_same_thread=check_same_thread)
     except Exception as e:
         raise genlib.ProgramException(e, 'B001', database_path)
 
+    # return the connection
     return conn
 
 #-------------------------------------------------------------------------------
@@ -330,7 +333,7 @@ def check_vcf_linkage_disequilibrium(conn):
     # initialize the control variable
     control = 0
 
-    # check if table "vcf_linkage_desequilibrium" exists
+    # check if table "vcf_linkage_disequilibrium" exists
     sentence = '''
                SELECT EXISTS
                    (SELECT 1
@@ -349,7 +352,7 @@ def check_vcf_linkage_disequilibrium(conn):
         control = int(row[0])
         break
 
-    # check if there are rows when the table "vcf_linkage_desequilibrium" exists
+    # check if there are rows when the table "vcf_linkage_disequilibrium" exists
     if control == 1:
 
         sentence = '''
@@ -429,9 +432,9 @@ def get_vcf_linkage_disequilibrium_list(conn, snp_id_1):
 
 #-------------------------------------------------------------------------------
 
-def get_vcf_linkage_desequilibrium_r2_measures(conn):
+def get_vcf_linkage_disequilibrium_r2_measures(conn):
     '''
-    Get global measures of r2 from linkage desequilibrium data.
+    Get global measures of r2 from linkage disequilibrium data.
     '''
 
     # create the SQL aggregate function "STDEV" in the database
@@ -444,7 +447,7 @@ def get_vcf_linkage_desequilibrium_r2_measures(conn):
     # query
     sentence = '''
                SELECT AVG(r2), STDEV(r2)
-                   FROM vcf_linkage_desequilibrium
+                   FROM vcf_linkage_disequilibrium
                    where r2 >= 0;
                '''
     try:

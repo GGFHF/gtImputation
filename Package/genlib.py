@@ -13,6 +13,7 @@ This source defines the general functions and classes used in Genotype Imputatio
 
 This software has been developed by:
 
+    GI en Especies Leñosas (WooSp)
     Dpto. Sistemas y Recursos Naturales
     ETSI Montes, Forestal y del Medio Natural
     Universidad Politecnica de Madrid
@@ -65,7 +66,7 @@ def get_app_version():
     Get the application version.
     '''
 
-    return '0.16'
+    return '0.17'
 
 #-------------------------------------------------------------------------------
 
@@ -92,7 +93,7 @@ def get_app_manual_file():
     Get the file path of application manual.
     '''
 
-    return './gtImputation-manual.pdf'
+    return f'./{get_app_short_name()}-manual.pdf'
 
 #-------------------------------------------------------------------------------
 
@@ -101,7 +102,7 @@ def get_app_image_file():
     Get the file path of application image.
     '''
 
-    return './image-gtImputation.png'
+    return f'./image-{get_app_short_name()}.png'
 
 #-------------------------------------------------------------------------------
 
@@ -217,23 +218,34 @@ def get_config_dict(config_file):
     Get a dictionary with the options retrieved from a configuration file.
     '''
 
+    # initialize the configuration dictionary
     option_dict = {}
 
     try:
 
+        # create class to parse the configuration files
         config = configparser.ConfigParser()
+
+        # read the configuration file
         config.read(config_file)
 
+        # build the dictionary
         for section in config.sections():
+            # get the keys dictionary
             keys_dict = option_dict.get(section, {})
+            # for each key in the section
             for key in config[section]:
+                # get the value of the key
                 value = config.get(section, key, fallback='')
+                # add a new enter in the keys dictionary
                 keys_dict[key] = get_option_value(value)
+            # update the section with its keys dictionary
             option_dict[section] = keys_dict
 
     except Exception as e:
         raise ProgramException(e, 'F005', config_file) from e
 
+    # return the configuration dictionary
     return option_dict
 
 #-------------------------------------------------------------------------------
@@ -243,13 +255,17 @@ def get_option_value(option):
     Remove comments and spaces from an option retrieve from a configuration file.
     '''
 
+    # remove comments
     position = option.find('#')
     if position == -1:
         value = option
     else:
         value = option[:position]
+
+    # remove spaces
     value = value.strip()
 
+    # return the value
     return value
 
 #-------------------------------------------------------------------------------
@@ -259,9 +275,11 @@ def windows_path_2_wsl_path(path):
     Change a Windows format path to a WSL format path.
     '''
 
+    # change the format path
     new_path = path.replace('\\', '/')
     new_path = f'/mnt/{new_path[0:1].lower()}{new_path[2:]}'
 
+    # return the path
     return new_path
 
 #-------------------------------------------------------------------------------
@@ -271,9 +289,11 @@ def wsl_path_2_windows_path(path):
     Change a WSL format path to a Windows format path.
     '''
 
+    # change the format path
     new_path = f'{path[5:6].upper()}:{path[6:]}'
     new_path = new_path.replace('/', '\\')
 
+    # return the path
     return new_path
 
 #-------------------------------------------------------------------------------
@@ -283,16 +303,20 @@ def get_wsl_envvar(envvar):
     Get the value of a varible environment from WSL.
     '''
 
+    # initialize the environment variable value
     envvar_value = get_na()
 
+    # build the command
     command = f'wsl bash -c "echo ${envvar}"'
 
+    # run the command
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
     for line in iter(process.stdout.readline, b''):
-        envvar_value = line.decode('utf-8').replace('\n','')
+        envvar_value = line.decode('utf-8').replace('\n' ,'')
         break
     process.wait()
 
+    # return the environment variable value
     return envvar_value
 
 #-------------------------------------------------------------------------------
@@ -302,13 +326,16 @@ def get_current_run_dir(result_dir, group, process):
     Get the run directory of a process.
     '''
 
+    # set the run identificacion
     now = datetime.datetime.now()
     date = datetime.datetime.strftime(now, '%y%m%d')
     time = datetime.datetime.strftime(now, '%H%M%S')
     run_id = f'{process}-{date}-{time}'
 
+    # set the current run directory
     current_run_dir = f'{result_dir}/{group}/{run_id}'
 
+    # return the run directory
     return current_run_dir
 
 #-------------------------------------------------------------------------------
@@ -318,9 +345,7 @@ def get_status_dir(current_run_dir):
     Get the status directory of a process.
     '''
 
-    status_dir = f'{current_run_dir}/status'
-
-    return status_dir
+    return f'{current_run_dir}/status'
 
 #-------------------------------------------------------------------------------
 
@@ -329,9 +354,7 @@ def get_status_ok(current_run_dir):
     Get the OK status file.
     '''
 
-    ok_status = f'{current_run_dir}/status/script.ok'
-
-    return ok_status
+    return f'{current_run_dir}/status/script.ok'
 
 #-------------------------------------------------------------------------------
 
@@ -340,9 +363,7 @@ def get_status_wrong(current_run_dir):
     Get the WRONG status file.
     '''
 
-    wrong_status = f'{current_run_dir}/status/script.wrong'
-
-    return wrong_status
+    return f'{current_run_dir}/status/script.wrong'
 
 #-------------------------------------------------------------------------------
 
@@ -351,11 +372,13 @@ def get_submission_log_file(function_name):
     Get the log file name of a process submission.
     '''
 
+    # set the log file name
     now = datetime.datetime.now()
     date = datetime.datetime.strftime(now, '%y%m%d')
     time = datetime.datetime.strftime(now, '%H%M%S')
     log_file_name = f'{get_log_dir()}/{function_name}-{date}-{time}.txt'
 
+    # return the log file name
     return log_file_name
 
    #---------------
@@ -365,20 +388,28 @@ def build_starter(directory, starter_name, script_name, current_run_dir):
     Build the script to start a process script.
     '''
 
+    # initialize the control variable and the error list
     OK = True
     error_list = []
 
+    # set the starter path
     starter_path = f'{directory}/{starter_name}'
+
+    # write the starter
     try:
         with open(starter_path, mode='w', encoding='iso-8859-1', newline='\n') as file_id:
             file_id.write( '#!/bin/bash\n')
             file_id.write( '#-------------------------------------------------------------------------------\n')
-            file_id.write(f'{current_run_dir}/{script_name} &>{current_run_dir}/{get_run_log_file()} &\n')
+            if sys.platform.startswith('linux') or sys.platform.startswith('win32'):
+                file_id.write(f'{current_run_dir}/{script_name} &>>{current_run_dir}/{get_run_log_file()} &\n')
+            elif sys.platform.startswith('darwin'):
+                file_id.write(f'{current_run_dir}/{script_name} &>{current_run_dir}/{get_run_log_file()} &\n')
     except Exception as e:
         error_list.append(f'*** EXCEPTION: "{e}".')
         error_list.append(f'*** ERROR: The file {starter_path} is not created.')
         OK = False
 
+    # return the control variable and error list
     return (OK, error_list)
 
 #-------------------------------------------------------------------------------
@@ -388,8 +419,10 @@ def list_log_files_command(local_process_id):
     Get the command to list log files depending on the Operating System.
     '''
 
+    # get log dir
     log_dir = get_log_dir()
 
+    # assign the command
     if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
         if local_process_id == 'all':
             command = f'ls {log_dir}/*.txt'
@@ -402,6 +435,7 @@ def list_log_files_command(local_process_id):
         else:
             command = f'dir /B {log_dir}{os.sep}{local_process_id}-*.txt'
 
+    # return the command
     return command
 
 #-------------------------------------------------------------------------------
@@ -411,10 +445,13 @@ def check_startswith(literal, text_list, case_sensitive=False):
     Check if a literal starts with a text in a list.
     '''
 
+    # initialize the control variable
     OK = False
 
+    # initialize the working list
     new_list = []
 
+    # if the codification is not case sensitive, convert the code and code list to uppercase
     if not case_sensitive:
         try:
             literal = literal.upper()
@@ -427,11 +464,13 @@ def check_startswith(literal, text_list, case_sensitive=False):
     else:
         new_list = text_list
 
+    # check if the literal starts with a text in the list
     for text in new_list:
         if literal.startswith(text):
             OK = True
             break
 
+    # return control variable
     return OK
 
 #-------------------------------------------------------------------------------
@@ -441,22 +480,26 @@ def check_code(literal, code_list, case_sensitive=False):
     Check if a literal is in a code list.
     '''
 
-    new_list = []
+    # initialize the working list
+    w_list = []
 
+    # if the codification is not case sensitive, convert the code and code list to uppercase
     if not case_sensitive:
         try:
             literal = literal.upper()
         except Exception:
             pass
         try:
-            new_list = [x.upper() for x in code_list]
+            w_list = [x.upper() for x in code_list]
         except Exception:
             pass
     else:
-        new_list = code_list
+        w_list = code_list
 
-    OK = literal in new_list
+    # check if the code is in the code list
+    OK = literal in w_list
 
+    # return control variable
     return OK
 
 #-------------------------------------------------------------------------------
@@ -466,8 +509,10 @@ def check_int(literal, minimum=(-sys.maxsize - 1), maximum=sys.maxsize):
     Check if a numeric or string literal is an integer number.
     '''
 
+    # initialize the control variable
     OK = True
 
+    # check the number
     try:
         int(literal)
         int(minimum)
@@ -478,6 +523,7 @@ def check_int(literal, minimum=(-sys.maxsize - 1), maximum=sys.maxsize):
         if int(literal) < int(minimum) or int(literal) > int(maximum):
             OK = False
 
+    # return control variable
     return OK
 
 #-------------------------------------------------------------------------------
@@ -487,8 +533,10 @@ def check_float(literal, minimum=float(-sys.maxsize - 1), maximum=float(sys.maxs
     Check if a numeric or string literal is a float number.
     '''
 
+    # initialize the control variable
     OK = True
 
+    # check the number
     try:
         float(literal)
         float(minimum)
@@ -501,6 +549,7 @@ def check_float(literal, minimum=float(-sys.maxsize - 1), maximum=float(sys.maxs
         if float(literal) < (float(minimum) + float(mne)) or float(literal) > (float(maximum) - float(mxe)):
             OK = False
 
+    # return control variable
     return OK
 
 #-------------------------------------------------------------------------------
@@ -510,18 +559,22 @@ def split_literal_to_integer_list(literal):
     Split a string literal with values are separated by comma in a integer value list.
     '''
 
+    # initialize the string values list and the interger values list
     strings_list = []
     integers_list = []
 
+    # split the string literal in a string values list
     strings_list = split_literal_to_string_list(literal)
 
-    for item in strings_list:
+    # convert each value from string to integer
+    for i in range(len(strings_list)):
         try:
-            integers_list.append(int(item))
-        except Exception:
+            integers_list.append(int(strings_list[i]))
+        except Exception as e:
             integers_list = []
             break
 
+    # return the integer values list
     return integers_list
 
 #-------------------------------------------------------------------------------
@@ -531,18 +584,22 @@ def split_literal_to_float_list(literal):
     Split a string literal with values are separated by comma in a float value list.
     '''
 
+    # initialize the string values list and the float values list
     strings_list = []
     float_list = []
 
+    # split the string literal in a string values list
     strings_list = split_literal_to_string_list(literal)
 
-    for item in strings_list:
+    # convert each value from string to float
+    for i in range(len(strings_list)):
         try:
-            float_list.append(float(item))
-        except Exception:
+            float_list.append(float(strings_list[i]))
+        except Exception as e:
             float_list = []
             break
 
+    # return the float values list
     return float_list
 
 #-------------------------------------------------------------------------------
@@ -552,13 +609,18 @@ def split_literal_to_string_list(literal):
     Split a string literal with values are separated by comma in a string value.
     '''
 
+    # initialize the new string list
     new_string_list = []
 
+    # split the string literal in a string list
     string_list = literal.split(',')
 
+    # remove the leading and trailing whitespaces in each value
+    # and add string list item to the new string list
     for item in string_list:
         new_string_list.append(item.strip())
 
+    # return the string values list
     return new_string_list
 
 #-------------------------------------------------------------------------------
@@ -568,14 +630,17 @@ def is_valid_path(path, operating_system=sys.platform):
     Check if a path is a valid path.
     '''
 
+    # initialize control variable
     OK = False
 
+    # check if the path is valid
     if operating_system.startswith('linux') or operating_system.startswith('darwin'):
         # -- OK = re.match(r'^(/.+)(/.+)*/?$', path)
         OK = True
     elif operating_system.startswith('win32'):
         OK = True
 
+    # return control variable
     return OK
 
 #-------------------------------------------------------------------------------
@@ -585,8 +650,10 @@ def is_absolute_path(path, operating_system=sys.platform):
     Check if a path is a absolute path.
     '''
 
+    # initialize control variable
     OK = False
 
+    # check if the path is absolute depending on the operating system
     if operating_system.startswith('linux') or operating_system.startswith('darwin'):
         if path != '':
             # -- OK = is_path_valid(path) and path[0] == '/'
@@ -594,6 +661,7 @@ def is_absolute_path(path, operating_system=sys.platform):
     elif operating_system.startswith('win32'):
         OK = True
 
+    # return control variable
     return OK
 
 #-------------------------------------------------------------------------------
@@ -603,22 +671,23 @@ def run_command(command, log, is_script):
     Run a Bash shell command and redirect stdout and stderr to log.
     '''
 
+    # prepare the command to be execuete in WSL if necessary
     if sys.platform.startswith('win32'):
         if is_script:
-            command = command.replace('&','')
+            command = command.replace('&', '')
             command = f'wsl bash -c "nohup {command} &>/dev/null"'
         else:
             command = f'wsl bash -c "{command}"'
 
+    # run the command
     current_subprocess = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-
     for line in iter(current_subprocess.stdout.readline, b''):
         line = re.sub(b'[^\x00-\x7F]+', b' ', line) # replace non-ASCII caracters by one blank space
         line = line.decode('iso-8859-1')
         log.write(line)
-
     rc = current_subprocess.wait()
 
+    # return the return code of the command run
     return rc
 
 #-------------------------------------------------------------------------------
@@ -628,9 +697,13 @@ def read_vcf_file(vcf_file_id, sample_number, check_sample_number=True):
     Read a VCF file record.
     '''
 
+    # initialize the data dictionary
     data_dict = {}
+
+    # initialize the key
     key = None
 
+    # read next record
     record = vcf_file_id.readline()
 
     # metadata record
@@ -653,18 +726,23 @@ def read_vcf_file(vcf_file_id, sample_number, check_sample_number=True):
     # variant record
     elif record != '' and not record.startswith('##') and not record.startswith('#CHROM'):
 
+        # initialize the record data list
         record_data_list = []
+
+        # build the record data list
         start = 0
         for end in [i for i, chr in enumerate(record) if chr == '\t']:
             record_data_list.append(record[start:end].strip())
             start = end + 1
         record_data_list.append(record[start:].strip('\n').strip())
 
+        # check the length of the record data list
         if check_sample_number and len(record_data_list) - 9 != sample_number:
             print(f'sample_number: {sample_number}')
             print(f'len(record_data_list) - 9: {len(record_data_list) - 9}')
             raise ProgramException('', 'L001', record_data_list[0], record_data_list[1])
 
+        # set data
         data_chrom = record_data_list[0]
         data_pos = record_data_list[1]
         data_id = record_data_list[2]
@@ -678,15 +756,19 @@ def read_vcf_file(vcf_file_id, sample_number, check_sample_number=True):
         for i in range(len(record_data_list) - 9):
             data_sample_list.append(record_data_list[i + 9])
 
+        # set the key
         key = f'{data_chrom}-{int(data_pos):09d}'
 
+        # get the record data dictionary
         data_dict = {'chrom': data_chrom, 'pos': data_pos, 'id': data_id, 'ref': data_ref, 'alt': data_alt, 'qual': data_qual, 'filter': data_filter, 'info': data_info, 'format': data_format, 'sample_list': data_sample_list}
 
     # there is not any record
     else:
 
+        # set the key
         key = bytes.fromhex('7E').decode('utf-8')
 
+    # return the record, key and data dictionary
     return record, key, data_dict
 
 #-------------------------------------------------------------------------------
@@ -730,7 +812,7 @@ def get_miniconda_dir():
     Get the directory where Miniconda3 is installed.
     '''
 
-    return 'Miniconda3'
+    return f'{get_app_short_name()}-Miniconda3'
 
 #-------------------------------------------------------------------------------
 
@@ -739,7 +821,7 @@ def get_miniconda_dir_in_wsl():
     Get the directory where Miniconda3 is installed in WSL environment.
     '''
 
-    return '~/Miniconda3'
+    return f'$HOME/{get_app_short_name()}-Miniconda3'
 
 #-------------------------------------------------------------------------------
 
@@ -820,6 +902,7 @@ def get_submitting_dict():
     Get the process submitting dictionary.
     '''
 
+    # build the submitting process dictionary
     submitting_dict = {}
     submitting_dict['install_miniconda3']= {'text': f'{get_miniconda3_name()} installation'}
     submitting_dict['install_bioconda_package_list']= {'text': 'Bioconda package list installation'}
@@ -827,6 +910,7 @@ def get_submitting_dict():
     submitting_dict['run_gtdb_building']= {'text': get_gtdb_building_name()}
     submitting_dict['run_som_imputation']= {'text': get_som_imputation_name()}
 
+    # return the submitting process dictionary
     return submitting_dict
 
 #-------------------------------------------------------------------------------
@@ -836,15 +920,19 @@ def get_submitting_id(submitting_text):
     Get the process submitting identification from the submission process text.
     '''
 
+    # initialize the control variable
     submitting_id_found = None
 
+    # get the dictionary of the submitting processes
     submitting_dict = get_submitting_dict()
 
+    # search the submitting process identification
     for key, value in submitting_dict.items():
         if value['text'] == submitting_text:
             submitting_id_found = key
             break
 
+    # return the submitting process identification
     return submitting_id_found
 
 #-------------------------------------------------------------------------------
@@ -854,12 +942,14 @@ def get_process_dict():
     Get the process dictionary.
     '''
 
+    # build the process dictionary
     process_dict = {}
     process_dict[get_miniconda3_code()]= {'name': get_miniconda3_name(), 'process_type': get_result_installation_subdir()}
     process_dict[get_naive_imputation_code()]= {'name': get_naive_imputation_name(), 'process_type': get_result_imputation_subdir()}
     process_dict[get_gtdb_building_code()]= {'name': get_gtdb_building_name(), 'process_type': get_result_imputation_subdir()}
     process_dict[get_som_imputation_code()]= {'name': get_som_imputation_name(), 'process_type': get_result_imputation_subdir()}
 
+    # return the process dictionary
     return process_dict
 
 #-------------------------------------------------------------------------------
@@ -869,15 +959,19 @@ def get_process_id(process_name):
     Get the process identification from the process name.
     '''
 
+    # initialize the process identication
     process_id_found = None
 
+    # get the process ddictionary
     process_dict = get_process_dict()
 
+    # search the process identification
     for key, value in process_dict.items():
         if value['name'] == process_name:
             process_id_found = key
             break
 
+    # return the process identication
     return process_id_found
 
 #-------------------------------------------------------------------------------
@@ -887,14 +981,18 @@ def get_process_name_list(process_type):
     Get the code list of installation processes.
     '''
 
+    # initialize the process name list
     process_name_list = []
 
+    # get the process ddictionary
     process_dict = get_process_dict()
 
+    # search the process names corresponding to the process type
     for _, value in process_dict.items():
         if value['process_type'] == process_type:
             process_name_list.append(value['name'])
 
+    # return the process name list sorted
     return sorted(process_name_list)
 
 #-------------------------------------------------------------------------------
@@ -1097,11 +1195,14 @@ class ProgramException(Exception):
     def __init__(self, e, code_exception, param1='', param2='', param3=''):
         '''Initialize the object to manage a passed exception.'''
 
+        # call the init method of the parent class
         super().__init__()
 
+        # print the message of the exception
         if e != '':
             Message.print('error', f'*** EXCEPTION: "{e}"')
 
+        # manage the code of exception
         if code_exception == 'B001':
             Message.print('error', f'*** ERROR {code_exception}: The database {param1} can not be connected.')
         elif code_exception == 'B002':

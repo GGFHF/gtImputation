@@ -14,6 +14,7 @@ Genotype Imputation (gtImputation).
 
 This software has been developed by:
 
+    GI en Especies Leñosas (WooSp)
     Dpto. Sistemas y Recursos Naturales
     ETSI Montes, Forestal y del Medio Natural
     Universidad Politecnica de Madrid
@@ -52,7 +53,7 @@ import genlib
 
 #-------------------------------------------------------------------------------
 
-class BrowseSubmittingLogs(QWidget):
+class FormBrowseSubmittingLogs(QWidget):
     '''
     Class used to browse the submitting logs.
     '''
@@ -64,21 +65,31 @@ class BrowseSubmittingLogs(QWidget):
         Create a class instance.
         '''
 
+        # save parameters in instance variables
         self.parent = parent
 
+        # call the init method of the parent class
         super().__init__()
 
+        # set the dimensions window
         self.window_height = self.parent.WINDOW_HEIGHT - 100
         self.window_width = self.parent.WINDOW_WIDTH - 50
 
+        # set the head and title
         self.head = 'Browse submitting logs'
         self.title = f'{genlib.get_app_short_name()} - {self.head}'
 
 
+        # build the graphic user interface of the window
         self.build_gui()
+
+        # load initial data in inputs
         self.initialize_inputs()
+
+        # check the content of inputs
         self.check_inputs()
 
+        # show the window
         self.show()
 
     #---------------
@@ -88,27 +99,34 @@ class BrowseSubmittingLogs(QWidget):
         Build the graphic user interface of the window.
         '''
 
+        # set the width and height of the window
         self.setFixedSize(self.window_width, self.window_height)
 
+        # move the window at center
         rectangle = self.frameGeometry()
         central_point = QGuiApplication.primaryScreen().availableGeometry().center()
         rectangle.moveCenter(central_point)
         self.move(rectangle.topLeft())
 
+        # get font metrics information
         fontmetrics = QFontMetrics(QApplication.font())
 
+        # create and configure "label_head"
         label_head = QLabel(self.head, alignment=Qt.AlignCenter)
         label_head.setStyleSheet('font: bold 14px; color: black; background-color: lightGray; max-height: 30px')
 
+        # create and configure "label_process"
         label_process = QLabel()
         label_process.setText('Process')
         label_process.setFixedWidth(fontmetrics.width('9'*10))
 
+        # create and configure "combobox_process"
         self.combobox_process = QComboBox()
         self.combobox_process.setFixedWidth(fontmetrics.width('9'*30))
         self.combobox_process.setCursor(QCursor(Qt.PointingHandCursor))
-        self.combobox_process.currentIndexChanged.connect(self.check_inputs)
+        self.combobox_process.currentIndexChanged.connect(self.combobox_process_currentIndexChanged)
 
+        # create and configure "tablewidget"
         self.tablewidget = QTableWidget()
         self.tablewidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tablewidget.horizontalHeader().setVisible(True)
@@ -116,13 +134,16 @@ class BrowseSubmittingLogs(QWidget):
         self.column_name_list = ['Process', 'Run id', 'Date', 'Time']
         self.tablewidget.setColumnCount(len(self.column_name_list))
         self.tablewidget.setHorizontalHeaderLabels(self.column_name_list)
-        self.tablewidget.setColumnWidth(0, 230)
-        self.tablewidget.setColumnWidth(1, 330)
+        self.tablewidget.setColumnWidth(0, 240)
+        self.tablewidget.setColumnWidth(1, 340)
         self.tablewidget.setColumnWidth(2, 90)
-        self.tablewidget.setColumnWidth(3, 90)
+        self.tablewidget.setColumnWidth(3, 70)
         self.tablewidget.verticalHeader().setVisible(True)
+        self.tablewidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tablewidget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tablewidget.doubleClicked.connect(self.tablewidget_doubleClicked)
 
+        # create and configure "gridlayout_data"
         gridlayout_data = QGridLayout()
         gridlayout_data.setColumnStretch(0, 1)
         gridlayout_data.setColumnStretch(1, 3)
@@ -131,26 +152,31 @@ class BrowseSubmittingLogs(QWidget):
         gridlayout_data.addWidget(self.combobox_process, 0, 1, alignment=Qt.AlignLeft)
         gridlayout_data.addWidget(self.tablewidget, 1, 0, 1, 3)
 
+        # create and configure "groupbox_data"
         groupbox_data = QGroupBox()
         groupbox_data.setObjectName('groupbox_data')
         groupbox_data.setStyleSheet('QGroupBox#groupbox_data {border: 0px;}')
         groupbox_data.setLayout(gridlayout_data)
 
+        # create and configure "pushbutton_refresh"
         self.pushbutton_refresh = QPushButton('Refresh')
         self.pushbutton_refresh.setToolTip('Update the process list.')
         self.pushbutton_refresh.setCursor(QCursor(Qt.PointingHandCursor))
         self.pushbutton_refresh.clicked.connect(self.pushbutton_refresh_clicked)
 
+        # create and configure "pushbutton_execute"
         self.pushbutton_execute = QPushButton('Execute')
         self.pushbutton_execute.setToolTip('Browse the log file corresponding to the process selected.')
         self.pushbutton_execute.setCursor(QCursor(Qt.PointingHandCursor))
         self.pushbutton_execute.clicked.connect(self.pushbutton_execute_clicked)
 
+        # create and configure "pushbutton_close"
         pushbutton_close = QPushButton('Close')
         pushbutton_close.setToolTip('Close the window.')
         pushbutton_close.setCursor(QCursor(Qt.PointingHandCursor))
         pushbutton_close.clicked.connect(self.pushbutton_close_clicked)
 
+        # create and configure "gridlayout_buttons"
         gridlayout_buttons = QGridLayout()
         gridlayout_buttons.setColumnStretch(0, 15)
         gridlayout_buttons.setColumnStretch(1, 1)
@@ -160,11 +186,13 @@ class BrowseSubmittingLogs(QWidget):
         gridlayout_buttons.addWidget(self.pushbutton_execute, 0, 2, alignment=Qt.AlignCenter)
         gridlayout_buttons.addWidget(pushbutton_close, 0, 3, alignment=Qt.AlignCenter)
 
+        # create and configure "groupbox_buttons"
         groupbox_buttons = QGroupBox()
         groupbox_buttons.setObjectName('groupbox_buttons')
         groupbox_buttons.setStyleSheet('QGroupBox#groupbox_buttons {border: 0px;}')
         groupbox_buttons.setLayout(gridlayout_buttons)
 
+        # create and configure "gridlayout_central"
         gridlayout_central = QGridLayout()
         gridlayout_central.setRowStretch(0, 1)
         gridlayout_central.setRowStretch(1, 1)
@@ -176,9 +204,11 @@ class BrowseSubmittingLogs(QWidget):
         gridlayout_central.addWidget(groupbox_data, 2, 0)
         gridlayout_central.addWidget(groupbox_buttons, 3, 0)
 
+        # create and configure "groupbox_central"
         groupbox_central = QGroupBox()
         groupbox_central.setLayout(gridlayout_central)
 
+        # create and configure "vboxlayout"
         vboxlayout = QVBoxLayout(self)
         vboxlayout.addWidget(groupbox_central)
 
@@ -189,7 +219,11 @@ class BrowseSubmittingLogs(QWidget):
         Load initial data in inputs.
         '''
 
+        # populate data in "combobox_process"
         self.combobox_process_populate()
+
+        # load data in "tablewidget"
+        self.load_tablewidget()
 
     #---------------
 
@@ -198,14 +232,15 @@ class BrowseSubmittingLogs(QWidget):
         Check the content of each input and do the actions linked to its value.
         '''
 
+        # initialize the control variable
         OK = True
 
-        if self.combobox_process.currentText() != '':
-            self.load_tablewidget()
+        if self.combobox_process.currentText() != '' and self.tablewidget.rowCount() > 0:
             self.pushbutton_execute.setEnabled(True)
         else:
             self.pushbutton_execute.setEnabled(False)
 
+        # return the control variable
         return OK
 
     #---------------
@@ -215,16 +250,20 @@ class BrowseSubmittingLogs(QWidget):
         Populate data in "combobox_process".
         '''
 
+        # get the process submitting dictionary
         submitting_dict = genlib.get_submitting_dict()
 
+        # set the list of process submitting texts
         submitting_text_list = []
         for _, value in submitting_dict.items():
             submitting_text_list.append(value['text'])
         submitting_text_list.sort()
 
+        # add items in "combobox_process" including "all"
         process_list = ['all'] + submitting_text_list
         self.combobox_process.addItems(process_list)
 
+        # simultate "combobox_process" index has changed
         self.combobox_process_currentIndexChanged()
 
     #---------------
@@ -234,27 +273,34 @@ class BrowseSubmittingLogs(QWidget):
         Process the event when an item of "combobox_process" has been selected.
         '''
 
+        # reload data in "tablewidget"
+        self.load_tablewidget()
+
+        # check the content of inputs
         self.check_inputs()
 
     #---------------
 
     def tablewidget_doubleClicked(self):
         '''
-        Browse the log file corresponding to the process selected.
+        Perform necessary actions after double clicking on "tablewidget".
         '''
 
+        # all selected item indexes
         for idx in self.tablewidget.selectionModel().selectedIndexes():
             row = idx.row()
-        self.browse_file(row)
 
+        # browse the log file corresponding to the row selected
+        self.browse_file(row)
 
     #---------------
 
     def pushbutton_refresh_clicked(self):
         '''
-        Update the process list.
+        Refresh "tablewidget".
         '''
 
+        # reload data in "tablewidget"
         self.load_tablewidget()
 
     #---------------
@@ -264,11 +310,13 @@ class BrowseSubmittingLogs(QWidget):
         Browse the log file corresponding to the process selected.
         '''
 
+        # get the list of rows selected
         row_list = []
         for idx in self.tablewidget.selectionModel().selectedIndexes():
             row_list.append(idx.row())
         row_list = list(set(row_list))
 
+        # browse the log file
         if len(row_list) == 1:
             self.browse_file(row_list[0])
         else:
@@ -291,25 +339,26 @@ class BrowseSubmittingLogs(QWidget):
 
     def load_tablewidget(self):
         '''
-        Load the content of the table with the log list.
+        Load data in "tablewidget".
         '''
 
+        # get the process
         process = self.combobox_process.currentText()
 
+        # get the process submitting dictionary
         submitting_dict = genlib.get_submitting_dict()
 
+        # get the log directory
         log_dir = genlib.get_log_dir()
 
+        # set the command to get the log files in log directory
         if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-
             if process == 'all':
                 command = f'ls {log_dir}/*.txt'
             else:
                 submitting_id = genlib.get_submitting_id(process)
                 command = f'ls {log_dir}/{submitting_id}-*.txt'
-
         elif sys.platform.startswith('win32'):
-
             log_dir = log_dir.replace('/', '\\')
             if process == 'all':
                 command = f'dir /B {log_dir}\\*.txt'
@@ -317,8 +366,13 @@ class BrowseSubmittingLogs(QWidget):
                 submitting_id = genlib.get_submitting_id(process)
                 command = f'dir /B {log_dir}\\{submitting_id}-*.txt'
 
+        # run the command to get the log files in log directory
+        output = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, check=False)
+
+        # initialize the log dictionary
         log_dict = {}
-        output = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+        # build the log dictionary
         for line in output.stdout.split('\n'):
             if line != '':
                 line = os.path.basename(line)
@@ -339,16 +393,14 @@ class BrowseSubmittingLogs(QWidget):
                 key = f'{process_text}-{run_id}'
                 log_dict[key] = {'process_text': process_text, 'run_id': run_id, 'date': date, 'time': time}
 
+        # initialize "tablewidget"
         self.tablewidget.clearContents()
+
+        # set the rows number of "tablewidget"
         self.tablewidget.setRowCount(len(log_dict))
 
-        if not log_dict:
-            if process == 'all':
-                text = 'There is not any submitting log.'
-            else:
-                text = f'There is not any submitting log of {process}.'
-            QMessageBox.critical(self, self.title, text, buttons=QMessageBox.Ok)
-        else:
+        # load data in "tablewidget"
+        if log_dict:
             row = 0
             for key in sorted(log_dict.keys()):
                 self.tablewidget.setItem(row, 0, QTableWidgetItem(log_dict[key]['process_text']))
@@ -364,18 +416,22 @@ class BrowseSubmittingLogs(QWidget):
         Browse the log file.
         '''
 
+        # get the run identification
         run_id = self.tablewidget.item(row, 1).text()
+
+        # set the log file path
         file_path = f'{genlib.get_log_dir()}/{run_id}'
 
+        # create and execute "DialogFileBrowser"
         head = f'Browse {file_path}'
-        file_browser = dialogs.FileBrowser(self, head, file_path)
+        file_browser = dialogs.DialogFileBrowser(self, head, file_path)
         file_browser.exec()
 
     #---------------
 
 #-------------------------------------------------------------------------------
 
-class BrowseResultLogs(QWidget):
+class FormBrowseResultLogs(QWidget):
     '''
     Class used to browse the result logs.
     '''
@@ -387,21 +443,33 @@ class BrowseResultLogs(QWidget):
         Create a class instance.
         '''
 
+        # save parameters in instance variables
         self.parent = parent
 
+        # call the init method of the parent class
         super().__init__()
 
+        # set the dimensions window
         self.window_height = self.parent.WINDOW_HEIGHT - 100
         self.window_width = self.parent.WINDOW_WIDTH - 50
 
+        # set the head and title
         self.head = 'Browse result logs'
         self.title = f'{genlib.get_app_short_name()} - {self.head}'
 
+        # get the dictionary of application configuration
+        self.app_config_dict = genlib.get_config_dict(genlib.get_app_config_file())
 
+        # build the graphic user interface of the window
         self.build_gui()
+
+        # load initial data in inputs
         self.initialize_inputs()
+
+        # check the content of inputs
         self.check_inputs()
 
+        # show the window
         self.show()
 
     #---------------
@@ -411,50 +479,62 @@ class BrowseResultLogs(QWidget):
         Build the graphic user interface of the window.
         '''
 
+        # set the width and height of the window
         self.setFixedSize(self.window_width, self.window_height)
 
+        # move the window at center
         rectangle = self.frameGeometry()
         central_point = QGuiApplication.primaryScreen().availableGeometry().center()
         rectangle.moveCenter(central_point)
         self.move(rectangle.topLeft())
 
+        # get font metrics information
         fontmetrics = QFontMetrics(QApplication.font())
 
+        # create and configure "label_head"
         label_head = QLabel(self.head, alignment=Qt.AlignCenter)
         label_head.setStyleSheet('font: bold 14px; color: black; background-color: lightGray; max-height: 30px')
 
+        # create and configure "label_process_type"
         label_process_type = QLabel()
         label_process_type.setText('Process type')
         label_process_type.setFixedWidth(fontmetrics.width('9'*13))
 
+        # create and configure "combobox_process_type"
         self.combobox_process_type = QComboBox()
         self.combobox_process_type.setFixedWidth(fontmetrics.width('9'*16))
         self.combobox_process_type.setCursor(QCursor(Qt.PointingHandCursor))
         self.combobox_process_type.currentIndexChanged.connect(self.combobox_process_type_currentIndexChanged)
 
+        # create and configure "label_process"
         label_process = QLabel()
         label_process.setText('Process')
         label_process.setFixedWidth(fontmetrics.width('9'*10))
 
+        # create and configure "combobox_process"
         self.combobox_process = QComboBox()
         self.combobox_process.setFixedWidth(fontmetrics.width('9'*30))
         self.combobox_process.setCursor(QCursor(Qt.PointingHandCursor))
-        self.combobox_process.currentIndexChanged.connect(self.check_inputs)
+        self.combobox_process.currentIndexChanged.connect(self.combobox_process_currentIndexChanged)
 
+        # create and configure "tablewidget"
         self.tablewidget = QTableWidget()
         self.tablewidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tablewidget.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         self.column_name_list = ['Process', 'Result dataset', 'Date', 'Time', 'Status']
         self.tablewidget.setColumnCount(len(self.column_name_list))
         self.tablewidget.setHorizontalHeaderLabels(self.column_name_list)
-        self.tablewidget.setColumnWidth(0, 240)
-        self.tablewidget.setColumnWidth(1, 240)
-        self.tablewidget.setColumnWidth(2, 90)
-        self.tablewidget.setColumnWidth(3, 90)
+        self.tablewidget.setColumnWidth(0, 230)
+        self.tablewidget.setColumnWidth(1, 280)
+        self.tablewidget.setColumnWidth(2, 85)
+        self.tablewidget.setColumnWidth(3, 70)
         self.tablewidget.setColumnWidth(4, 90)
         self.tablewidget.verticalHeader().setVisible(True)
+        self.tablewidget.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tablewidget.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tablewidget.doubleClicked.connect(self.tablewidget_doubleClicked)
 
+        # create and configure "gridlayout_data"
         gridlayout_data = QGridLayout()
         gridlayout_data.setColumnStretch(0, 1)
         gridlayout_data.setColumnStretch(1, 2)
@@ -466,26 +546,31 @@ class BrowseResultLogs(QWidget):
         gridlayout_data.addWidget(self.combobox_process, 0, 3, alignment=Qt.AlignLeft)
         gridlayout_data.addWidget(self.tablewidget, 1, 0, 1, 4)
 
+        # create and configure "groupbox_data"
         groupbox_data = QGroupBox()
         groupbox_data.setObjectName('groupbox_data')
         groupbox_data.setStyleSheet('QGroupBox#groupbox_data {border: 0px;}')
         groupbox_data.setLayout(gridlayout_data)
 
+        # create and configure "pushbutton_refresh"
         self.pushbutton_refresh = QPushButton('Refresh')
         self.pushbutton_refresh.setToolTip('Update the process list.')
         self.pushbutton_refresh.setCursor(QCursor(Qt.PointingHandCursor))
         self.pushbutton_refresh.clicked.connect(self.pushbutton_refresh_clicked)
 
+        # create and configure "pushbutton_execute"
         self.pushbutton_execute = QPushButton('Execute')
         self.pushbutton_execute.setToolTip('Browse the log file corresponding to the process selected.')
         self.pushbutton_execute.setCursor(QCursor(Qt.PointingHandCursor))
         self.pushbutton_execute.clicked.connect(self.pushbutton_execute_clicked)
 
+        # create and configure "pushbutton_close"
         pushbutton_close = QPushButton('Close')
         pushbutton_close.setToolTip('Close the window.')
         pushbutton_close.setCursor(QCursor(Qt.PointingHandCursor))
         pushbutton_close.clicked.connect(self.pushbutton_close_clicked)
 
+        # create and configure "gridlayout_buttons"
         gridlayout_buttons = QGridLayout()
         gridlayout_buttons.setColumnStretch(0, 15)
         gridlayout_buttons.setColumnStretch(1, 1)
@@ -495,11 +580,13 @@ class BrowseResultLogs(QWidget):
         gridlayout_buttons.addWidget(self.pushbutton_execute, 0, 2, alignment=Qt.AlignCenter)
         gridlayout_buttons.addWidget(pushbutton_close, 0, 3, alignment=Qt.AlignCenter)
 
+        # create and configure "groupbox_buttons"
         groupbox_buttons = QGroupBox()
         groupbox_buttons.setObjectName('groupbox_buttons')
         groupbox_buttons.setStyleSheet('QGroupBox#groupbox_buttons {border: 0px;}')
         groupbox_buttons.setLayout(gridlayout_buttons)
 
+        # create and configure "gridlayout_central"
         gridlayout_central = QGridLayout()
         gridlayout_central.setRowStretch(0, 1)
         gridlayout_central.setRowStretch(1, 1)
@@ -511,9 +598,11 @@ class BrowseResultLogs(QWidget):
         gridlayout_central.addWidget(groupbox_data, 2, 0)
         gridlayout_central.addWidget(groupbox_buttons, 3, 0)
 
+        # create and configure "groupbox_central"
         groupbox_central = QGroupBox()
         groupbox_central.setLayout(gridlayout_central)
 
+        # create and configure "vboxlayout"
         vboxlayout = QVBoxLayout(self)
         vboxlayout.addWidget(groupbox_central)
 
@@ -524,6 +613,7 @@ class BrowseResultLogs(QWidget):
         Load initial data in inputs.
         '''
 
+        # populate data in "combobox_process_type"
         self.combobox_process_type_populate()
 
     #---------------
@@ -533,16 +623,21 @@ class BrowseResultLogs(QWidget):
         Check the content of each input and do the actions linked to its value.
         '''
 
+        # initialize the control variable
         OK = True
 
-        if self.combobox_process_type.currentText() != '' and self.combobox_process.currentText() != '':
-            self.load_tablewidget()
+        # enable "pushbutton_refresh" and"pushbutton_execute"
+        if self.combobox_process_type.currentText() != '' and self.combobox_process.currentText() != '' and self.tablewidget.rowCount() > 0:
             self.pushbutton_refresh.setEnabled(True)
             self.pushbutton_execute.setEnabled(True)
+        elif self.combobox_process_type.currentText() != '' and self.combobox_process.currentText() != '' and self.tablewidget.rowCount() == 0:
+            self.pushbutton_refresh.setEnabled(True)
+            self.pushbutton_execute.setEnabled(False)
         else:
             self.pushbutton_refresh.setEnabled(False)
             self.pushbutton_execute.setEnabled(False)
 
+        # return the control variable
         return OK
 
     #---------------
@@ -552,9 +647,13 @@ class BrowseResultLogs(QWidget):
         Populate data in "combobox_process_type".
         '''
 
+        # set the process type list
         process_type_list = ['', genlib.get_result_imputation_subdir(), genlib.get_result_installation_subdir()]
+
+        # add items in "combobox_process_type"
         self.combobox_process_type.addItems(process_type_list)
 
+        # simultate "combobox_process_type" index has changed
         self.combobox_process_type_currentIndexChanged()
 
     #---------------
@@ -564,11 +663,16 @@ class BrowseResultLogs(QWidget):
         Process the event when an item of "combobox_process_type" has been selected.
         '''
 
+        # initialize "tablewidget"
         self.tablewidget.clearContents()
+
+        # initialize the rows number of "tableswdget"
         self.tablewidget.setRowCount(0)
 
+        # populate data in "combobox_process"
         self.combobox_process_populate()
 
+        # check the content of inputs
         self.check_inputs()
 
     #---------------
@@ -578,15 +682,21 @@ class BrowseResultLogs(QWidget):
         Populate data in "combobox_process".
         '''
 
+        # initialize "combo_process"
         self.combobox_process.clear()
+
+        # set the process list
         if self.combobox_process_type.currentText() == genlib.get_result_imputation_subdir():
             process_list = ['all'] + genlib.get_process_name_list(genlib.get_result_imputation_subdir())
         elif self.combobox_process_type.currentText() == genlib.get_result_installation_subdir():
             process_list = ['all'] + genlib.get_process_name_list(genlib.get_result_installation_subdir())
         else:
             process_list = ['']
+
+        # add items in "combobox_process"
         self.combobox_process.addItems(process_list)
 
+        # simultate "combobox_process" index has changed
         self.combobox_process_currentIndexChanged()
 
     #---------------
@@ -596,26 +706,34 @@ class BrowseResultLogs(QWidget):
         Process the event when an item of "combobox_process" has been selected.
         '''
 
+        # load data in "tablewidget"
+        self.load_tablewidget()
+
+        # check the content of inputs
         self.check_inputs()
 
     #---------------
 
     def tablewidget_doubleClicked(self):
         '''
-        Browse the log file corresponding to the process selected.
+        Perform necessary actions after double clicking on "tablewidget".
         '''
 
+        # all selected item indexes
         for idx in self.tablewidget.selectionModel().selectedIndexes():
             row = idx.row()
+
+        # browse the log file corresponding to the row selected
         self.browse_file(row)
 
     #---------------
 
     def pushbutton_refresh_clicked(self):
         '''
-        Update the process list.
+        Refresh "tablewidget".
         '''
 
+        # reload data in "tablewidget"
         self.load_tablewidget()
 
     #---------------
@@ -625,11 +743,13 @@ class BrowseResultLogs(QWidget):
         Browse the log file corresponding to the process selected.
         '''
 
+        # get the list of rows selected
         row_list = []
         for idx in self.tablewidget.selectionModel().selectedIndexes():
             row_list.append(idx.row())
         row_list = list(set(row_list))
 
+        # browse the log file
         if len(row_list) == 1:
             self.browse_file(row_list[0])
         else:
@@ -652,43 +772,49 @@ class BrowseResultLogs(QWidget):
 
     def load_tablewidget(self):
         '''
-        Load the content of the table with the log list.
+        Load data in "tablewidget".
         '''
 
-        app_config_dict = genlib.get_config_dict(genlib.get_app_config_file())
-        result_dir = app_config_dict['Environment parameters']['result_dir']
+        # get the result directory
+        result_dir = self.app_config_dict['Environment parameters']['result_dir']
 
-
+        # set the type, name and code of the annotation pipeline datasets
         process_type = self.combobox_process_type.currentText()
         process_name = self.combobox_process.currentText()
         process_code = genlib.get_process_id(process_name)
 
+        # get the process dictionary
         process_dict = genlib.get_process_dict()
 
+        # get the log directory
         log_dir = f'{result_dir}/{process_type}'
         if sys.platform.startswith('win32'):
             log_dir = genlib.wsl_path_2_windows_path(log_dir)
 
+        # set the command to get the result datasets of annotation pipeline in the log directory
         if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
-
             if process_name == 'all':
                 command = f'ls -d {log_dir}/*  | xargs -n 1 basename'
             else:
                 command = f'ls -d {log_dir}/{process_code}-*  | xargs -n 1 basename'
-
         elif sys.platform.startswith('win32'):
-
             log_dir = log_dir.replace('/', '\\')
             if process_name == 'all':
                 command = f'dir /a:d /b {log_dir}\\*'
             else:
                 command = f'dir /a:d /b {log_dir}\\{process_code}-*'
 
+        # run the command to get the result datasets of enrichment analysis in the log directory
+        output = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, check=False)
+
+        # initialize the result dataset dictionary
         result_dataset_dict = {}
-        output = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
+
+        # build the result dataset dictionary
         for line in output.stdout.split('\n'):
             if line != '':
 
+                # get data
                 result_dataset_id = line.strip()
                 try:
                     pattern = r'^(.+)\-(.+)\-(.+)$'
@@ -704,6 +830,7 @@ class BrowseResultLogs(QWidget):
                     date = '0000-00-00'
                     time = '00:00:00'
 
+                # determine the status
                 status_ok = os.path.isfile(genlib.get_status_ok(os.path.join(log_dir, result_dataset_id)))
                 status_wrong = os.path.isfile(genlib.get_status_wrong(os.path.join(log_dir, result_dataset_id)))
                 if status_ok and not status_wrong:
@@ -715,16 +842,18 @@ class BrowseResultLogs(QWidget):
                 elif status_ok and status_wrong:
                     status = 'undetermined'
 
+                # insert data in the dictionary
                 key = f'{process_name}-{result_dataset_id}'
                 result_dataset_dict[key] = {'process': process_name, 'result_dataset_id': result_dataset_id, 'date': date, 'time': time, 'status': status}
 
+        # initialize "tablewidget"
         self.tablewidget.clearContents()
+
+        # set the rows number of "tableswdget"
         self.tablewidget.setRowCount(len(result_dataset_dict))
 
-        if not result_dataset_dict:
-            text = 'There is not any result logs.'
-            QMessageBox.critical(self, self.title, text, buttons=QMessageBox.Ok)
-        else:
+        # load data in "tablewidget"
+        if result_dataset_dict:
             row = 0
             for key in sorted(result_dataset_dict.keys()):
                 self.tablewidget.setItem(row, 0, QTableWidgetItem(result_dataset_dict[key]['process']))
@@ -741,16 +870,20 @@ class BrowseResultLogs(QWidget):
         Browse the log file.
         '''
 
-        app_config_dict = genlib.get_config_dict(genlib.get_app_config_file())
-        result_dir = app_config_dict['Environment parameters']['result_dir']
+        # get the result directory
+        result_dir = self.app_config_dict['Environment parameters']['result_dir']
 
+        # get the result dataset
         result_dataset = self.tablewidget.item(row, 1).text()
+
+        # set the log file path
         file_path = f'{result_dir}/{self.combobox_process_type.currentText()}/{result_dataset}/{genlib.get_run_log_file()}'
         if sys.platform.startswith('win32'):
             file_path = genlib.wsl_path_2_windows_path(file_path)
 
+        # create and execute "DialogFileBrowser"
         head = f'Browse .../{self.combobox_process_type.currentText()}/{result_dataset}/{genlib.get_run_log_file()}'
-        file_browser = dialogs.FileBrowser(self, head, file_path)
+        file_browser = dialogs.DialogFileBrowser(self, head, file_path)
         file_browser.exec()
 
     #---------------
