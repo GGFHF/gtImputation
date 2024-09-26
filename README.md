@@ -13,7 +13,7 @@ DOI: https://doi.org/10.1111/1755-0998.13992
 
 This software has been developed by:
 
-    GI Especies Leñosas (WooSp)
+    GI en Especies Leñosas (WooSp)
     Dpto. Sistemas y Recursos Naturales
     ETSI Montes, Forestal y del Medio Natural
     Universidad Politécnica de Madrid
