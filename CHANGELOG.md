@@ -1,4 +1,10 @@
-CURRENT VERSION: 0.17
+CURRENT VERSION: 0.18
+
+********************************************************************************
+
+v0.18 (November 2024)
+
+* Updated manual to review installation on Ubuntu, macOS, and Windows.
 
 ********************************************************************************
 

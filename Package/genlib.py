@@ -13,7 +13,7 @@ This source defines the general functions and classes used in Genotype Imputatio
 
 This software has been developed by:
 
-    GI en Especies Leñosas (WooSp)
+    GI en Desarrollo de Especies y Comunidades Leñosas (WooSp)
     Dpto. Sistemas y Recursos Naturales
     ETSI Montes, Forestal y del Medio Natural
     Universidad Politecnica de Madrid
@@ -66,7 +66,7 @@ def get_app_version():
     Get the application version.
     '''
 
-    return '0.17'
+    return '0.18'
 
 #-------------------------------------------------------------------------------
 

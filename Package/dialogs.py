@@ -14,7 +14,7 @@ Genotype Imputation (gtImputation).
 
 This software has been developed by:
 
-    GI en Especies Leñosas (WooSp)
+    GI en Desarrollo de Especies y Comunidades Leñosas (WooSp)
     Dpto. Sistemas y Recursos Naturales
     ETSI Montes, Forestal y del Medio Natural
     Universidad Politecnica de Madrid
@@ -504,7 +504,7 @@ class DialogAbout(QDialog):
 
         # create and configure "label_research_group"
         label_research_group = QLabel()
-        label_research_group.setText('GI en Especies Leñosas (WooSp)')
+        label_research_group.setText('GI en Desarrollo de Especies y Comunidades Leñosas (WooSp)')
 
         # create and configure "label_department"
         label_department = QLabel()
