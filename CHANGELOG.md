@@ -2,7 +2,7 @@ CURRENT VERSION: 0.19
 
 ********************************************************************************
 
-v0.19 (mmm 20yy)
+v0.19 (November 2024)
 
 * Modification in the creation of the MiniSom object by replacing minisom.asymptotic_decay
   by “asymptotic_decay” in the assignment of the value of the decay_function parameter.
