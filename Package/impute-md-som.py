@@ -684,7 +684,7 @@ def process_variant(thread_id, conn, semaphore, minimum_r2, r_estimator, snps_nu
             # create a new SOM x * y instance and train the SOM algorith
             som_shape_tup = (xdim, ydim)
             som = minisom.MiniSom(x=som_shape_tup[0], y=som_shape_tup[1], input_len=len(input_data_list[0]),
-                                sigma=sigma, learning_rate=learning_rate, decay_function=minisom.asymptotic_decay,
+                                sigma=sigma, learning_rate=learning_rate, decay_function='asymptotic_decay',
                                 neighborhood_function='gaussian', topology='rectangular', activation_distance='euclidean', random_seed=None)
 
             # initialize the weights to span the first two principal components
@@ -717,7 +717,7 @@ def process_variant(thread_id, conn, semaphore, minimum_r2, r_estimator, snps_nu
                         mark = '<---'
                     else:
                         mark = ''
-                    if variant_id in tvi_list: genlib.Message.print('trace', f'thread_id: {thread_id} - variant_id: {variant_id} -         label_id: {label_id} - seq: {seq} {mark}')
+                    if variant_id in tvi_list: genlib.Message.print('trace', f'thread_id: {thread_id} - variant_id: {variant_id} - label_id: {label_id} - seq: {seq} {mark}')
 
             # get the coordinates of the winning neuron for the sample with missing data
             winning_neuron_coordinates_list = []

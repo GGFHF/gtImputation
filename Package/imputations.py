@@ -38,6 +38,7 @@ from PyQt5.QtGui import QPixmap                  # pylint: disable=no-name-in-mo
 from PyQt5.QtWidgets import QAbstractItemView    # pylint: disable=no-name-in-module
 from PyQt5.QtWidgets import QApplication         # pylint: disable=no-name-in-module
 from PyQt5.QtWidgets import QComboBox            # pylint: disable=no-name-in-module
+from PyQt5.QtWidgets import QDialog             # pylint: disable=no-name-in-module
 from PyQt5.QtWidgets import QFileDialog          # pylint: disable=no-name-in-module
 from PyQt5.QtWidgets import QGridLayout          # pylint: disable=no-name-in-module
 from PyQt5.QtWidgets import QGroupBox            # pylint: disable=no-name-in-module
@@ -1035,7 +1036,7 @@ class FormNaiveImputationReview(QWidget):
             self.parent.statusBar().showMessage('There are one or more inputs without data or with wrong values.')
 
         # enable "pushbutton_execute"
-        if OK and self.combobox_naive_process.currentText() != '' and self.combobox_file_format.currentText() != '' and self.lineedit_mdc.text() != '' and self.lineedit_file_path.text() != '':
+        if OK and self.combobox_naive_process.currentText() != '' and self.lineedit_file_format.text() != '' and self.lineedit_mdc.text() != '' and self.lineedit_file_path.text() != '':
             self.pushbutton_execute.setEnabled(True)
         else:
             self.pushbutton_execute.setEnabled(False)
@@ -3938,6 +3939,7 @@ class FormSOMImputationReview(QWidget):
 #-------------------------------------------------------------------------------
 
 class DialogImputationPlot(QWidget):
+#class DialogImputationPlot(QDialog):
     '''
     The class of the dialog to plot the result of an imputation process.
     '''
@@ -3974,10 +3976,10 @@ class DialogImputationPlot(QWidget):
         self.build_gui()
 
         # load initial data in inputs
-        self.initialize_inputs()
+        # self.initialize_inputs()
 
         # check the content of inputs
-        self.check_inputs()
+        # self.check_inputs()
 
         # show the window in maximized size
         self.showMaximized()
@@ -4384,7 +4386,7 @@ class DialogImputationPlot(QWidget):
                     self.tablewidget_map.item(row, col).setBackground(Qt.darkYellow)
             row += 1
 
-        # resize "tablewidget_map" columns to their contents 
+        # resize "tablewidget_map" columns to their contents
         if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
             for col in range(self.sample_number):
                 self.tablewidget_map.resizeColumnToContents(col)

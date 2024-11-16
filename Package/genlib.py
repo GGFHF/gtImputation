@@ -66,7 +66,7 @@ def get_app_version():
     Get the application version.
     '''
 
-    return '0.18'
+    return '0.19'
 
 #-------------------------------------------------------------------------------
 
