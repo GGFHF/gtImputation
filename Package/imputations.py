@@ -418,6 +418,8 @@ class FormNaiveImputation(QWidget):
             (file, _) = QFileDialog.getOpenFileName(self, f'{self.head} - Selection of the file', os.path.expanduser('~'), 'Text files (*.txt);;TSV files (*.tsv);;All files (*)')
         elif self.combobox_file_format.currentText() == 'VCF':
             (file, _) = QFileDialog.getOpenFileName(self, f'{self.head} - Selection of the file', os.path.expanduser('~'), 'VCF files (*.vcf);;All files (*)')
+        else:
+            file = ''
         self.lineedit_file_path.setText(file)
 
         # check the content of inputs
@@ -623,6 +625,8 @@ class FormNaiveImputation(QWidget):
             vcf_wmd_file = f'{current_run_dir}/vcf_wmd.vcf'
         elif file_format == 'VCF':
             vcf_wmd_file = file_path
+        else:
+            vcf_wmd_file = ''
 
         # set the imputed VCF
         vcf_imputed_file = f'{current_run_dir}/imputed.vcf'
@@ -1180,7 +1184,7 @@ class FormNaiveImputationReview(QWidget):
 
         # create and show the imputation plot
         imputation_plot = DialogImputationPlot(self, head, imputation_data_file)
-        imputation_plot.show()
+        imputation_plot.exec()
 
     #---------------
 
@@ -1555,6 +1559,8 @@ class FormGenotypeDatabase(QWidget):
             (file, _) = QFileDialog.getOpenFileName(self, f'{self.head} - Selection of the file', os.path.expanduser('~'), 'Text files (*.txt);;TSV files (*.tsv);;All files (*)')
         elif self.combobox_file_format.currentText() == 'VCF':
             (file, _) = QFileDialog.getOpenFileName(self, f'{self.head} - Selection of the file', os.path.expanduser('~'), 'VCF files (*.vcf);;All files (*)')
+        else:
+            file = ''
         self.lineedit_file_path.setText(file)
 
         # check the content of inputs
@@ -1760,6 +1766,8 @@ class FormGenotypeDatabase(QWidget):
             vcf_wmd_file = f'{current_run_dir}/wmd.vcf'
         elif file_format == 'VCF':
             vcf_wmd_file = f'{current_run_dir}/wmd.vcf'
+        else:
+            vcf_wmd_file = ''
 
         # set the genotype database file
         genotype_db = f'{current_run_dir}/genotype.db'
@@ -3923,7 +3931,7 @@ class FormSOMImputationReview(QWidget):
         # show de dialog with imputation
         head = f'{self.head}: {self.combobox_som_process.currentText()}'
         imputation_plot = DialogImputationPlot(self, head, imputation_data_file)
-        imputation_plot.show()
+        imputation_plot.exec()
 
     #---------------
 
@@ -3938,8 +3946,7 @@ class FormSOMImputationReview(QWidget):
 
 #-------------------------------------------------------------------------------
 
-class DialogImputationPlot(QWidget):
-#class DialogImputationPlot(QDialog):
+class DialogImputationPlot(QDialog):
     '''
     The class of the dialog to plot the result of an imputation process.
     '''
@@ -3972,17 +3979,21 @@ class DialogImputationPlot(QWidget):
         self.seq_id_list = ['all'] + sorted(self.seq_id_dict.keys())
         QGuiApplication.restoreOverrideCursor()
 
+        # hide "tablewidget_map"
+        self.tablewidget_map_hidden = False
+
         # build the graphic user interface of the window
         self.build_gui()
 
         # load initial data in inputs
-        # self.initialize_inputs()
+        self.initialize_inputs()
 
         # check the content of inputs
-        # self.check_inputs()
+        self.check_inputs()
 
         # show the window in maximized size
-        self.showMaximized()
+        # self.showMaximized()
+        self.setWindowState(Qt.WindowMaximized)
 
     #---------------
 
@@ -4082,10 +4093,14 @@ class DialogImputationPlot(QWidget):
         # -- self.setWindowFlag(Qt.WindowMaximizeButtonHint, True)
 
         # move the window at center
-        rectangle = self.frameGeometry()
-        central_point = QGuiApplication.primaryScreen().availableGeometry().center()
-        rectangle.moveCenter(central_point)
-        self.move(rectangle.topLeft())
+        # rectangle = self.frameGeometry()
+        # central_point = QGuiApplication.primaryScreen().availableGeometry().center()
+        # rectangle.moveCenter(central_point)
+        # self.move(rectangle.topLeft())
+
+        # get the available size of the current monitor
+        screen_geometry = QGuiApplication.primaryScreen().availableGeometry()
+        self.setGeometry(screen_geometry)
 
         # get font metrics information
         fontmetrics = QFontMetrics(QApplication.font())
@@ -4142,6 +4157,8 @@ class DialogImputationPlot(QWidget):
             factor = int(0.8 * self.sample_number)
         elif  sys.platform.startswith('win32'):
             factor = int(0.4 * self.sample_number)
+        else:
+            factor = 1
         self.tablewidget_map.setFixedWidth(fontmetrics.width('9'*factor))
         self.tablewidget_map.setEditTriggers(QAbstractItemView.NoEditTriggers)
         self.tablewidget_map.setStyleSheet('font: 1px')
