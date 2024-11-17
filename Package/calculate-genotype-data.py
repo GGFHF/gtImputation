@@ -443,9 +443,9 @@ def calculate_genotype_data(conn, threads_num, vcf_file, tvi_list):
                 rw = kinship_dict[i][j]['rw_numerator_summation'] / kinship_dict[i][j]['rw_denominator_summation']
                 ru = kinship_dict[i][j]['ru_summation'] / kinship_dict[i][j]['ru_l']
             except ZeroDivisionError as e:
-                genlib.Message.print('info', '*** WARNING: ZeroDivisionError calculating kinship data')
-                genlib.Message.print('info', f'between samples {sample_list[i]} & {sample_list[j]}')
-                genlib.Message.print('info', 'due to all variants have missing data in at least one of the two samples.')
+                genlib.Message.print('trace', '*** WARNING: ZeroDivisionError calculating kinship data')
+                genlib.Message.print('trace', f'between samples {sample_list[i]} & {sample_list[j]}')
+                genlib.Message.print('trace', 'due to all variants have missing data in at least one of the two samples.')
                 rw = -999
                 ru = -999
             kinship_row_dict = {}
@@ -635,10 +635,10 @@ def calculate_snp_linkage_disequilibrium(conn, semaphore, sample_number, snp_id_
             r2 = (dhat ** 2) / (rf1 * af1 * rf2 * af2)
         except ZeroDivisionError:
             r2 = -999
-            genlib.Message.print('info', '*** WARNING: LD r^2 is not calculated because a ZeroDivisionError exception was raised.')
-            genlib.Message.print('info', f'snp_id_1: {snp_id_1} - snp_id_2: {snp_id_2}')
-            genlib.Message.print('info', f'n: {n} - n1: {n1} - n2: {n2} - n3: {n3} - n4: {n4} - n5: {n5} - n6: {n6} - n7: {n7} - n8: {n8} - n9: {n9}')
-            genlib.Message.print('info', f'rf1: {rf1} - af1: {af1} - rf2: {rf2} - af2: {af2}')
+            genlib.Message.print('trace', '*** WARNING: LD r^2 is not calculated because a ZeroDivisionError exception was raised.')
+            genlib.Message.print('trace', f'snp_id_1: {snp_id_1} - snp_id_2: {snp_id_2}')
+            genlib.Message.print('trace', f'n: {n} - n1: {n1} - n2: {n2} - n3: {n3} - n4: {n4} - n5: {n5} - n6: {n6} - n7: {n7} - n8: {n8} - n9: {n9}')
+            genlib.Message.print('trace', f'rf1: {rf1} - af1: {af1} - rf2: {rf2} - af2: {af2}')
 
         # save linkage disequilibrium data into the table "vcf_linkage_disequilibrium"
         ld_row_dict = {}
