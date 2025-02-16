@@ -66,7 +66,7 @@ def get_app_version():
     Get the application version.
     '''
 
-    return '0.19'
+    return '0.20'
 
 #-------------------------------------------------------------------------------
 
@@ -130,6 +130,7 @@ def get_default_font_size():
     Get the default font depending on the Operating System.
     '''
 
+    default_font_and_size = 0
     if sys.platform.startswith('linux'):
         default_font_and_size = ('Verdana', 10)
     elif sys.platform.startswith('darwin'):
@@ -183,6 +184,24 @@ def get_result_imputation_subdir():
     '''
 
     return 'imputation'
+
+#-------------------------------------------------------------------------------
+
+def get_yml_dir():
+    '''
+    Get the yml directory where gtImputation environment installation is.
+    '''
+
+    return 'yml'
+
+#-------------------------------------------------------------------------------
+
+def get_gtimputation_yml_file():
+    '''
+    Get the yml file of the gtImputation environment installation.
+    '''
+
+    return 'gtimputation.yml'
 
 #-------------------------------------------------------------------------------
 
@@ -423,6 +442,7 @@ def list_log_files_command(local_process_id):
     log_dir = get_log_dir()
 
     # assign the command
+    command = ''
     if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
         if local_process_id == 'all':
             command = f'ls {log_dir}/*.txt'
@@ -556,46 +576,46 @@ def check_float(literal, minimum=float(-sys.maxsize - 1), maximum=float(sys.maxs
 
 def split_literal_to_integer_list(literal):
     '''
-    Split a string literal with values are separated by comma in a integer value list.
+    Split a text literal with values are separated by comma in a integer list.
     '''
 
-    # initialize the string values list and the interger values list
-    strings_list = []
-    integers_list = []
+    # initialize the text list and interger list
+    text_list = []
+    integer_list = []
 
-    # split the string literal in a string values list
-    strings_list = split_literal_to_string_list(literal)
+    # split the text literal in a text list
+    text_list = split_literal_to_text_list(literal)
 
-    # convert each value from string to integer
-    for i in range(len(strings_list)):
+    # convert each item from text to integer
+    for text in text_list:
         try:
-            integers_list.append(int(strings_list[i]))
-        except Exception as e:
-            integers_list = []
+            integer_list.append(int(text))
+        except Exception:
+            integer_list = []
             break
 
     # return the integer values list
-    return integers_list
+    return integer_list
 
 #-------------------------------------------------------------------------------
 
 def split_literal_to_float_list(literal):
     '''
-    Split a string literal with values are separated by comma in a float value list.
+    Split a text literal with values are separated by comma in a float list.
     '''
 
-    # initialize the string values list and the float values list
-    strings_list = []
+    # initialize the text list and the float list
+    text_list = []
     float_list = []
 
-    # split the string literal in a string values list
-    strings_list = split_literal_to_string_list(literal)
+    # split the text literal in a text list
+    text_list = split_literal_to_text_list(literal)
 
-    # convert each value from string to float
-    for i in range(len(strings_list)):
+    # convert each value from text to float
+    for text in text_list:
         try:
-            float_list.append(float(strings_list[i]))
-        except Exception as e:
+            float_list.append(float(text))
+        except Exception:
             float_list = []
             break
 
@@ -604,24 +624,24 @@ def split_literal_to_float_list(literal):
 
 #-------------------------------------------------------------------------------
 
-def split_literal_to_string_list(literal):
+def split_literal_to_text_list(literal):
     '''
-    Split a string literal with values are separated by comma in a string value.
+    Split a text literal with values are separated by comma in a text list.
     '''
 
-    # initialize the new string list
-    new_string_list = []
+    # initialize the new text list
+    new_text_list = []
 
-    # split the string literal in a string list
-    string_list = literal.split(',')
+    # split the text literal in a text list
+    text_list = literal.split(',')
 
     # remove the leading and trailing whitespaces in each value
-    # and add string list item to the new string list
-    for item in string_list:
-        new_string_list.append(item.strip())
+    # and add text item to the new text list
+    for item in text_list:
+        new_text_list.append(item.strip())
 
-    # return the string values list
-    return new_string_list
+    # return the text list
+    return new_text_list
 
 #-------------------------------------------------------------------------------
 
@@ -671,7 +691,7 @@ def run_command(command, log, is_script):
     Run a Bash shell command and redirect stdout and stderr to log.
     '''
 
-    # prepare the command to be execuete in WSL if necessary
+    # prepare the command to be execuete on WSL if necessary
     if sys.platform.startswith('win32'):
         if is_script:
             command = command.replace('&', '')
@@ -773,55 +793,97 @@ def read_vcf_file(vcf_file_id, sample_number, check_sample_number=True):
 
 #-------------------------------------------------------------------------------
 
-def get_miniconda3_code():
+def get_miniforge3_code():
     '''
-    Get the Miniconda3 code used to identify its processes.
+    Get the Miniforge3 code used to identify its processes.
     '''
 
-    return 'miniconda3'
+    return 'miniforge3'
 
 #-------------------------------------------------------------------------------
 
-def get_miniconda3_name():
+def get_miniforge3_name():
     '''
-    Get the Miniconda3 name used to title.
+    Get the Miniforge3 name used to title.
     '''
 
-    return 'Miniconda3'
+    return 'Miniforge3'
 
 #-------------------------------------------------------------------------------
 
-def get_miniconda3_url():
+def get_miniforge3_url():
     '''
-    Get the Miniconda3 URL.
+    Get the Miniforge3 URL.
     '''
 
-    # assign the Miniconda 3 URL
+    # assign the Miniforge3 URL
+    miniforge3_url = ''
     if sys.platform.startswith('linux') or sys.platform.startswith('win32'):
-        miniconda3_url = 'https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh'
+        miniforge3_url = 'https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh'
     elif sys.platform.startswith('darwin'):
-        miniconda3_url = 'https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh'
+        miniforge3_url = 'https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-x86_64.sh'
 
-    # return the Miniconda 3 URL
-    return miniconda3_url
-
-#-------------------------------------------------------------------------------
-
-def get_miniconda_dir():
-    '''
-    Get the directory where Miniconda3 is installed.
-    '''
-
-    return f'{get_app_short_name()}-Miniconda3'
+    # return the Miniforge3 URL
+    return miniforge3_url
 
 #-------------------------------------------------------------------------------
 
-def get_miniconda_dir_in_wsl():
+def get_miniforge3_dir():
     '''
-    Get the directory where Miniconda3 is installed in WSL environment.
+    Get the directory where Miniforge3 is installed.
     '''
 
-    return f'$HOME/{get_app_short_name()}-Miniconda3'
+    return 'Miniforge3'
+
+#-------------------------------------------------------------------------------
+
+def get_miniforge3_dir_in_wsl():
+    '''
+    Get the directory where Miniforge3 is installed on WSL environment.
+    '''
+
+    return '$HOME/Miniforge3'
+
+#-------------------------------------------------------------------------------
+
+def get_miniforge3_current_dir():
+    '''
+    Get the current directory where Miniforge3 is installed.
+    '''
+
+    # get the path of the directory path of the current conda environment
+    environment_path = os.getenv('CONDA_PREFIX')
+    envs_pos = environment_path.find('/envs')
+
+    # get the miniforge current directory
+    miniforge3_current_dir = ''
+    if envs_pos == -1:
+        miniforge3_current_dir = environment_path
+    else:
+        miniforge3_current_dir = environment_path[:envs_pos]
+
+    # return the miniforge current directory
+    return miniforge3_current_dir
+
+#-------------------------------------------------------------------------------
+
+def get_gtimputation_env_code():
+    '''
+    Get the Miniforge3 environment code where the Python packages used by gtImputation are
+    installed.
+    '''
+
+    return 'gtimputation'
+
+#-------------------------------------------------------------------------------
+
+def get_gtimputation_env_name():
+    '''
+    Get the Miniforge3 environment name where the Python packages used by gtImputation are
+    installed.
+    '''
+
+    return 'gtImputation environment'
 
 #-------------------------------------------------------------------------------
 
@@ -904,7 +966,8 @@ def get_submitting_dict():
 
     # build the submitting process dictionary
     submitting_dict = {}
-    submitting_dict['install_miniconda3']= {'text': f'{get_miniconda3_name()} installation'}
+    submitting_dict['install_miniforge3']= {'text': f'{get_miniforge3_name()} installation'}
+    submitting_dict['install_gtimputation_env']= {'text': f'{get_gtimputation_env_name()} installation'}
     submitting_dict['install_bioconda_package_list']= {'text': 'Bioconda package list installation'}
     submitting_dict['run_naive_imputation']= {'text': get_naive_imputation_name()}
     submitting_dict['run_gtdb_building']= {'text': get_gtdb_building_name()}
@@ -944,7 +1007,8 @@ def get_process_dict():
 
     # build the process dictionary
     process_dict = {}
-    process_dict[get_miniconda3_code()]= {'name': get_miniconda3_name(), 'process_type': get_result_installation_subdir()}
+    process_dict[get_miniforge3_code()]= {'name': get_miniforge3_name(), 'process_type': get_result_installation_subdir()}
+    process_dict[get_gtimputation_env_code()]= {'name': get_gtimputation_env_name(), 'process_type': get_result_installation_subdir()}
     process_dict[get_naive_imputation_code()]= {'name': get_naive_imputation_name(), 'process_type': get_result_imputation_subdir()}
     process_dict[get_gtdb_building_code()]= {'name': get_gtdb_building_name(), 'process_type': get_result_imputation_subdir()}
     process_dict[get_som_imputation_code()]= {'name': get_som_imputation_name(), 'process_type': get_result_imputation_subdir()}

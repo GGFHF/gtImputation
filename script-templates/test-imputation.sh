@@ -12,11 +12,11 @@
 #
 # Licence: GNU General Public Licence Version 3.
 
-# This script uses the following software: NGShelper and Miniconda. Installation instructions:
+# This script uses the following software: NGShelper and Miniforge3. Installation instructions:
 #
 #    - NGShelper: see https://github.com/GGFHF/NGShelper/
 #
-#    - Miniconda: see https://docs.conda.io/en/latest/miniconda.html
+#    - Miniforge3: see https://github.com/conda-forge/miniforge
 
 #-------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ if [ -n "$*" ]; then echo 'This script has not parameters.'; exit 1; fi
 
 SEP="#########################################"
 
-MINIDONDA3_BIN=~/Miniconda3/bin
+MINIDONDA3_BIN=~/Miniforge3/bin
 NGSHELPER_DIR=~/Documents/NGShelper-master/Package
 
 DATASET_ID=mr-QS

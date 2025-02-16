@@ -1,0 +1,6 @@
+name: gtimputation
+channels:
+  - conda-forge
+dependencies:
+  - minisom
+  - pyqt

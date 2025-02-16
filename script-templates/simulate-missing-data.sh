@@ -12,13 +12,13 @@
 #
 # Licence: GNU General Public Licence Version 3.
 
-# This script uses the following software: NGShelper, Miniconda, BCFtools, Tabix and VCFtools.
-# First install NGShelper and Miniconda. Then install BCFtools, Tabix and VCF tools using the
-# Miniconda command conda. Installation instructions:
+# This script uses the following software: NGShelper, Miniforge3, BCFtools, Tabix and VCFtools.
+# First install NGShelper and Miniforge if necessary. Then install BCFtools, Tabix and VCF tools
+# using the Miniforge3 command conda. Installation instructions:
 #
 #    - NGShelper: see https://github.com/GGFHF/NGShelper/
 #
-#    - Miniconda: see https://docs.conda.io/en/latest/miniconda.html
+#    - Miniforge3: see https://github.com/conda-forge/miniforge
 #
 #    - BCFtool:
 #        $ conda create --yes --name bcftools bcftools
@@ -37,7 +37,7 @@ if [ -n "$*" ]; then echo 'This script has not parameters.'; exit 1; fi
 
 SEP="#########################################"
 
-MINIDONDA3_BIN=~/Miniconda3/bin
+MINIDONDA3_BIN=~/Miniforge3/bin
 NGSHELPER_DIR=~/Documents/NGShelper-master/Package
 
 DATASET_ID=mr-QS

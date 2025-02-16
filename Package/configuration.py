@@ -107,20 +107,6 @@ class FormRecreateConfigFile(QWidget):
         label_head = QLabel(self.head, alignment=Qt.AlignCenter)
         label_head.setStyleSheet('font: bold 14px; color: black; background-color: lightGray; max-height: 30px')
 
-        # create and configure "label_miniconda3_dir"
-        label_miniconda3_dir = QLabel()
-        label_miniconda3_dir.setText('Miniconda directory')
-
-        # create and configure "lineedit_miniconda3_dir"
-        self.lineedit_miniconda3_dir = QLineEdit()
-        self.lineedit_miniconda3_dir.editingFinished.connect(self.check_inputs)
-
-        # create and configure "pushbutton_search_miniconda3_dir"
-        self.pushbutton_search_miniconda3_dir = QPushButton('Search ...')
-        self.pushbutton_search_miniconda3_dir.setToolTip('Search and select the Miniconda 3 directory.')
-        self.pushbutton_search_miniconda3_dir.setCursor(QCursor(Qt.PointingHandCursor))
-        self.pushbutton_search_miniconda3_dir.clicked.connect(self.pushbutton_search_miniconda3_dir_clicked)
-
         # create and configure "label_gtdb_dir"
         label_gtdb_dir = QLabel()
         label_gtdb_dir.setText('Genotype database directory')
@@ -158,15 +144,12 @@ class FormRecreateConfigFile(QWidget):
         gridlayout_data.setColumnStretch(1,15)
         gridlayout_data.setColumnStretch(2,2)
         gridlayout_data.setColumnStretch(3,0)
-        gridlayout_data.addWidget(label_miniconda3_dir, 0, 0)
-        gridlayout_data.addWidget(self.lineedit_miniconda3_dir, 0, 1)
-        gridlayout_data.addWidget(self.pushbutton_search_miniconda3_dir, 0, 2)
-        gridlayout_data.addWidget(label_gtdb_dir, 1, 0)
-        gridlayout_data.addWidget(self.lineedit_gtdb_dir, 1, 1)
-        gridlayout_data.addWidget(pushbutton_search_gtdb_dir, 1, 2)
-        gridlayout_data.addWidget(label_result_dir, 2, 0)
-        gridlayout_data.addWidget(self.lineedit_result_dir, 2, 1)
-        gridlayout_data.addWidget(pushbutton_search_result_dir, 2, 2)
+        gridlayout_data.addWidget(label_gtdb_dir, 0, 0)
+        gridlayout_data.addWidget(self.lineedit_gtdb_dir, 0, 1)
+        gridlayout_data.addWidget(pushbutton_search_gtdb_dir, 0, 2)
+        gridlayout_data.addWidget(label_result_dir, 1, 0)
+        gridlayout_data.addWidget(self.lineedit_result_dir, 1, 1)
+        gridlayout_data.addWidget(pushbutton_search_result_dir, 1, 2)
 
         # create and configure "groupbox_data"
         groupbox_data = QGroupBox()
@@ -234,25 +217,11 @@ class FormRecreateConfigFile(QWidget):
         # get home directory
         home_dir = str(pathlib.Path.home())
 
-        # set initial value in "lineedit_miniconda3_dir"
-        if sys.platform.startswith('win32'):
-            self.lineedit_miniconda3_dir.setText(f'{home_dir}{os.sep}{genlib.get_miniconda_dir()}')
-            user = genlib.get_wsl_envvar('USER')
-            wsl_distro_name = genlib.get_wsl_envvar('WSL_DISTRO_NAME')
-            self.lineedit_miniconda3_dir.setText(f'\\\\wsl$\\{wsl_distro_name}\\home\\{user}\\{genlib.get_miniconda_dir()}')
-            self.lineedit_miniconda3_dir.setEnabled(False)
-        else:
-            self.lineedit_miniconda3_dir.setText(f'{home_dir}{os.sep}{genlib.get_miniconda_dir()}')
-
         # set initial value in "lineedit_gtdb_dir"
         self.lineedit_gtdb_dir.setText(f'{home_dir}{os.sep}{genlib.get_gtdb_dir()}')
 
         # set initial value in "lineedit_result_dir"
         self.lineedit_result_dir.setText(f'{home_dir}{os.sep}{genlib.get_result_dir()}')
-
-        # unenable "pushbutton_search_miniconda3_dir" in Windows environment
-        if sys.platform.startswith('win32'):
-            self.pushbutton_search_miniconda3_dir.setEnabled(False)
 
     #---------------
 
@@ -263,10 +232,6 @@ class FormRecreateConfigFile(QWidget):
 
         # initialize the control variable
         OK = True
-
-        # check "lineedit_miniconda3_dir" when the editing finished
-        if not self.lineedit_miniconda3_dir_editing_finished():
-            OK = False
 
         # check "lineedit_gtdb_dir" when the editing finished
         if not self.lineedit_gtdb_dir_editing_finished():
@@ -283,56 +248,13 @@ class FormRecreateConfigFile(QWidget):
             self.parent.statusBar().showMessage('ERROR: One or more input values are wrong.')
 
         # enable "pushbutton_execute"
-        if OK and self.lineedit_miniconda3_dir.text() != '' and self.lineedit_gtdb_dir.text() != '' and self.lineedit_result_dir.text() != '':
+        if OK and  self.lineedit_gtdb_dir.text() != '' and self.lineedit_result_dir.text() != '':
             self.pushbutton_execute.setEnabled(True)
         else:
             self.pushbutton_execute.setEnabled(False)
 
         # return the control variable
         return OK
-
-    #---------------
-
-    def lineedit_miniconda3_dir_editing_finished(self):
-        '''
-        Perform necessary actions after finishing editing "lineedit_miniconda3_dir"
-        '''
-
-        # initialize the control variable
-        OK = True
-
-        # chek "lineedit_miniconda3_dir" is empty
-        if self.lineedit_miniconda3_dir.text() == '':
-            OK = False
-            self.lineedit_miniconda3_dir.setStyleSheet('background-color: white')
-
-        # chek "lineedit_miniconda3_dir" is an absolute path
-        elif not genlib.is_absolute_path(self.lineedit_miniconda3_dir.text()):
-            self.lineedit_miniconda3_dir.setStyleSheet('background-color: red')
-            OK = False
-
-        else:
-            self.lineedit_miniconda3_dir.setStyleSheet('background-color: white')
-
-        # return the control variable
-        return OK
-
-    #---------------
-
-    def pushbutton_search_miniconda3_dir_clicked(self):
-        '''
-        Search and select the Miniconda3 directory.
-        '''
-
-        # get the Miniconda3 directory
-        directory = QFileDialog.getExistingDirectory(self, f'{self.head} - Selection of the Miniconda3 directory', os.path.expanduser('~'), QFileDialog.ShowDirsOnly|QFileDialog.DontResolveSymlinks)
-
-        # set the Miniconda3 directory in "lineedit_miniconda3_dir"
-        if directory != '':
-            self.lineedit_miniconda3_dir.setText(directory)
-
-        # check the content of inputs
-        self.check_inputs()
 
     #---------------
 
@@ -442,14 +364,8 @@ class FormRecreateConfigFile(QWidget):
             # get the application directory
             app_dir = os.path.dirname(os.path.abspath(__file__))
 
-            # get the Miniconda3 directory
-            if sys.platform.startswith('win32'):
-                miniconda3_dir = None
-            else:
-                miniconda3_dir = self.lineedit_miniconda3_dir.text()
-
             # create the application config file
-            (OK, error_list) = self.create_app_config_file(app_dir, miniconda3_dir, self.lineedit_gtdb_dir.text(), self.lineedit_result_dir.text())
+            (OK, error_list) = self.create_app_config_file(app_dir, self.lineedit_gtdb_dir.text(), self.lineedit_result_dir.text())
             if OK:
                 text = f'The file\n\n{genlib.get_app_config_file()}\n\nis recreated.'
                 QMessageBox.information(self, self.title, text, buttons=QMessageBox.Ok)
@@ -478,7 +394,7 @@ class FormRecreateConfigFile(QWidget):
    #---------------
 
     @staticmethod
-    def create_app_config_file(app_dir=None, miniconda3_dir=None, gtdb_dir=None, result_dir=None):
+    def create_app_config_file(app_dir=None, gtdb_dir=None, result_dir=None):
         '''
         Create the application config file.
         '''
@@ -495,15 +411,6 @@ class FormRecreateConfigFile(QWidget):
             app_dir = os.path.dirname(os.path.abspath(__file__))
         if sys.platform.startswith('win32'):
             app_dir = genlib.windows_path_2_wsl_path(app_dir)
-
-        # set the Miniconda3 directory
-        if miniconda3_dir is None:
-            if sys.platform.startswith('win32'):
-                miniconda3_dir = genlib.get_miniconda_dir_in_wsl()
-            else:
-                miniconda3_dir = f'{home_dir}/{genlib.get_miniconda_dir()}'
-        miniconda3_bin_dir = f'{miniconda3_dir}/bin'
-        miniconda3_envs_dir = f'{miniconda3_dir}/envs'
 
         # set the genotype database directory
         if gtdb_dir is None:
@@ -527,9 +434,6 @@ class FormRecreateConfigFile(QWidget):
             with open(app_config_file, mode='w', encoding='iso-8859-1', newline='\n') as file_id:
                 file_id.write( '[Environment parameters]\n')
                 file_id.write(f'app_dir = {app_dir}\n')
-                file_id.write(f'miniconda3_dir = {miniconda3_dir}\n')
-                file_id.write(f'miniconda3_bin_dir = {miniconda3_bin_dir}\n')
-                file_id.write(f'miniconda3_envs_dir = {miniconda3_envs_dir}\n')
                 file_id.write(f'gtdb_dir = {gtdb_dir}\n')
                 file_id.write(f'result_dir = {result_dir}\n')
         except Exception as e:

@@ -131,7 +131,7 @@ class FormNaiveImputation(QWidget):
         self.lineedit_threads = QLineEdit()
         self.lineedit_threads.setFixedWidth(fontmetrics.width('9'*10))
         self.lineedit_threads.editingFinished.connect(self.check_inputs)
-        self.lineedit_threads.setReadOnly(True)
+        self.lineedit_threads.setDisabled(True)
 
         # create and configure "label_file_format"
         label_file_format = QLabel()
@@ -609,14 +609,21 @@ class FormNaiveImputation(QWidget):
         OK = True
         error_list = []
 
+        # get the Miniforge3 directory and its bin subdirectory
+        miniforge3_dir = ''
+        if sys.platform.startswith('win32'):
+            miniforge3_dir = genlib.get_miniforge3_dir_in_wsl()
+        elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+            miniforge3_dir = genlib.get_miniforge3_current_dir()
+        miniforge3_bin_dir = f'{miniforge3_dir}/bin'
+
         # get items from dictionary of application configuration
         app_dir = self.app_config_dict['Environment parameters']['app_dir']
-        miniconda3_bin_dir = self.app_config_dict['Environment parameters']['miniconda3_bin_dir']
 
         # set the parameters file
         params_file = f'{current_run_dir}/params.txt'
 
-        # set the file path in WSL
+        # set the file path on WSL
         if sys.platform.startswith('win32'):
             file_path = genlib.windows_path_2_wsl_path(file_path)
 
@@ -651,7 +658,7 @@ class FormNaiveImputation(QWidget):
                 file_id.write(f'FILE_PATH="{file_path}"\n')
                 file_id.write(f'VCF_WMD_FILE="{vcf_wmd_file}"\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
-                file_id.write(f'export PATH={miniconda3_bin_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin\n')
+                file_id.write(f'export PATH={miniforge3_bin_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin\n')
                 file_id.write( 'SEP="#########################################"\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
                 file_id.write(f'STATUS_DIR={genlib.get_status_dir(current_run_dir)}\n')
@@ -668,16 +675,6 @@ class FormNaiveImputation(QWidget):
                 file_id.write( '    FORMATTED_INIT_DATETIME=`date "+%Y-%m-%d %H:%M:%S"`\n')
                 file_id.write( '    echo "$SEP"\n')
                 file_id.write( '    echo "Script started at $FORMATTED_INIT_DATETIME."\n')
-                file_id.write( '}\n')
-                file_id.write( '#-------------------------------------------------------------------------------\n')
-                file_id.write( 'function activate_env_base\n')
-                file_id.write( '{\n')
-                file_id.write( '    echo "$SEP"\n')
-                file_id.write( '    echo "Activating environment base ..."\n')
-                file_id.write(f'    source {miniconda3_bin_dir}/activate\n')
-                file_id.write( '    RC=$?\n')
-                file_id.write( '    if [ $RC -ne 0 ]; then manage_error conda $RC; fi\n')
-                file_id.write( '    echo "Environment is activated."\n')
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
                 file_id.write( 'function save_params\n')
@@ -698,6 +695,7 @@ class FormNaiveImputation(QWidget):
                     file_id.write( '{\n')
                     file_id.write( '    echo "$SEP"\n')
                     file_id.write(f'    echo "Converting file {os.path.basename(file_path)} in tabular format to VCF ..."\n')
+                    file_id.write(f'    source {miniforge3_bin_dir}/activate {genlib.get_gtimputation_env_code()}\n')
                     file_id.write( '    /usr/bin/time \\\n')
                     file_id.write(f'        {app_dir}/tab2vcf.py \\\n')
                     file_id.write(f'            --tab={file_path} \\\n')
@@ -707,6 +705,7 @@ class FormNaiveImputation(QWidget):
                     file_id.write( '            --trace=N \n')
                     file_id.write( '    RC=$?\n')
                     file_id.write( '    if [ $RC -ne 0 ]; then manage_error tab2vcf.py $RC; fi\n')
+                    file_id.write( '    conda deactivate\n')
                     file_id.write( '    echo "File is converted."\n')
                     file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
@@ -714,6 +713,7 @@ class FormNaiveImputation(QWidget):
                 file_id.write( '{\n')
                 file_id.write( '    echo "$SEP"\n')
                 file_id.write(f'    echo "Processing the naive imputation of {os.path.basename(vcf_wmd_file)} ..."\n')
+                file_id.write(f'    source {miniforge3_bin_dir}/activate {genlib.get_gtimputation_env_code()}\n')
                 file_id.write( '    /usr/bin/time \\\n')
                 file_id.write(f'        {app_dir}/impute-md-naive.py \\\n')
                 file_id.write( '            --threads=$THREADS \\\n')
@@ -725,6 +725,7 @@ class FormNaiveImputation(QWidget):
                 file_id.write( '            --tvi=NONE\n')
                 file_id.write( '    RC=$?\n')
                 file_id.write( '    if [ $RC -ne 0 ]; then manage_error impute-md-naive.py $RC; fi\n')
+                file_id.write( '    conda deactivate\n')
                 file_id.write( '    echo "Naive imputation is ended."\n')
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
@@ -732,6 +733,7 @@ class FormNaiveImputation(QWidget):
                 file_id.write( '{\n')
                 file_id.write( '    echo "$SEP"\n')
                 file_id.write(f'    echo "Converting VCF file {os.path.basename(vcf_imputed_file)} to a file in tabular format ..."\n')
+                file_id.write(f'    source {miniforge3_bin_dir}/activate {genlib.get_gtimputation_env_code()}\n')
                 file_id.write( '    /usr/bin/time \\\n')
                 file_id.write(f'        {app_dir}/vcf2tab.py \\\n')
                 file_id.write(f'            --vcf={vcf_imputed_file} \\\n')
@@ -742,6 +744,7 @@ class FormNaiveImputation(QWidget):
                 file_id.write( '            --tvi=NONE\n')
                 file_id.write( '    RC=$?\n')
                 file_id.write( '    if [ $RC -ne 0 ]; then manage_error vcf2tab.py $RC; fi\n')
+                file_id.write( '    conda deactivate\n')
                 file_id.write( '    echo "File is converted."\n')
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
@@ -780,7 +783,6 @@ class FormNaiveImputation(QWidget):
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
                 file_id.write( 'init\n')
-                file_id.write( 'activate_env_base\n')
                 file_id.write( 'save_params\n')
                 if file_format == 'tabular':
                     file_id.write('convert_tab_to_vcf\n')
@@ -885,7 +887,7 @@ class FormNaiveImputationReview(QWidget):
         self.lineedit_file_format  = QLineEdit()
         self.lineedit_file_format.setFixedWidth(fontmetrics.width('9'*10))
         self.lineedit_file_format.editingFinished.connect(self.check_inputs)
-        self.lineedit_file_format.setReadOnly(True)
+        self.lineedit_file_format.setDisabled(True)
 
         # create and configure "label_mdc"
         label_mdc = QLabel()
@@ -896,7 +898,7 @@ class FormNaiveImputationReview(QWidget):
         self.lineedit_mdc  = QLineEdit()
         self.lineedit_mdc.setFixedWidth(fontmetrics.width('9'*10))
         self.lineedit_mdc.editingFinished.connect(self.check_inputs)
-        self.lineedit_mdc.setReadOnly(True)
+        self.lineedit_mdc.setDisabled(True)
 
         # create and configure "label_file_path"
         label_file_path = QLabel()
@@ -906,7 +908,7 @@ class FormNaiveImputationReview(QWidget):
         # create and configure "lineedit_file_path"
         self.lineedit_file_path  = QLineEdit()
         self.lineedit_file_path.editingFinished.connect(self.check_inputs)
-        self.lineedit_file_path.setReadOnly(True)
+        self.lineedit_file_path.setDisabled(True)
 
         # create and configure "label_empty"
         label_empty = QLabel()
@@ -1272,7 +1274,7 @@ class FormGenotypeDatabase(QWidget):
         self.lineedit_threads  = QLineEdit()
         self.lineedit_threads.setFixedWidth(fontmetrics.width('9'*10))
         self.lineedit_threads.editingFinished.connect(self.check_inputs)
-        self.lineedit_threads.setReadOnly(True)
+        self.lineedit_threads.setDisabled(True)
 
         # create and configure "label_file_format"
         label_file_format = QLabel()
@@ -1749,14 +1751,21 @@ class FormGenotypeDatabase(QWidget):
         OK = True
         error_list = []
 
+        # get the Miniforge3 directory and its bin subdirectory
+        miniforge3_dir = ''
+        if sys.platform.startswith('win32'):
+            miniforge3_dir = genlib.get_miniforge3_dir_in_wsl()
+        elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+            miniforge3_dir = genlib.get_miniforge3_current_dir()
+        miniforge3_bin_dir = f'{miniforge3_dir}/bin'
+
         # get items from dictionary of application configuration
         app_dir = self.app_config_dict['Environment parameters']['app_dir']
-        miniconda3_bin_dir = self.app_config_dict['Environment parameters']['miniconda3_bin_dir']
 
         # set the parameters file
         params_file = f'{current_run_dir}/params.txt'
 
-        # set the file path in WSL
+        # set the file path on WSL
         if sys.platform.startswith('win32'):
             file_path = genlib.windows_path_2_wsl_path(file_path)
 
@@ -1780,7 +1789,7 @@ class FormGenotypeDatabase(QWidget):
             with open(script_path, mode='w', encoding='iso-8859-1', newline='\n') as file_id:
                 file_id.write( '#!/bin/bash\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
-                file_id.write(f'export PATH={miniconda3_bin_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin\n')
+                file_id.write(f'export PATH={miniforge3_bin_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin\n')
                 file_id.write( 'SEP="#########################################"\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
                 file_id.write(f'THREADS={threads}\n')
@@ -1803,16 +1812,6 @@ class FormGenotypeDatabase(QWidget):
                 file_id.write( '    FORMATTED_INIT_DATETIME=`date "+%Y-%m-%d %H:%M:%S"`\n')
                 file_id.write( '    echo "$SEP"\n')
                 file_id.write( '    echo "Script started at $FORMATTED_INIT_DATETIME."\n')
-                file_id.write( '}\n')
-                file_id.write( '#-------------------------------------------------------------------------------\n')
-                file_id.write( 'function activate_env_base\n')
-                file_id.write( '{\n')
-                file_id.write( '    echo "$SEP"\n')
-                file_id.write( '    echo "Activating environment base ..."\n')
-                file_id.write(f'    source {miniconda3_bin_dir}/activate\n')
-                file_id.write( '    RC=$?\n')
-                file_id.write( '    if [ $RC -ne 0 ]; then manage_error conda $RC; fi\n')
-                file_id.write( '    echo "Environment is activated."\n')
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
                 file_id.write( 'function save_params\n')
@@ -1847,6 +1846,7 @@ class FormGenotypeDatabase(QWidget):
                     file_id.write( '{\n')
                     file_id.write( '    echo "$SEP"\n')
                     file_id.write(f'    echo "Converting file {os.path.basename(file_path)} in tabular format to VCF ..."\n')
+                    file_id.write(f'    source {miniforge3_bin_dir}/activate {genlib.get_gtimputation_env_code()}\n')
                     file_id.write( '    /usr/bin/time \\\n')
                     file_id.write(f'        {app_dir}/tab2vcf.py \\\n')
                     file_id.write(f'            --tab="{tab_wmd_file}" \\\n')
@@ -1856,6 +1856,7 @@ class FormGenotypeDatabase(QWidget):
                     file_id.write( '            --trace=N \n')
                     file_id.write( '    RC=$?\n')
                     file_id.write( '    if [ $RC -ne 0 ]; then manage_error tab2vcf.py $RC; fi\n')
+                    file_id.write( '    conda deactivate\n')
                     file_id.write( '    echo "File is converted."\n')
                     file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
@@ -1863,6 +1864,7 @@ class FormGenotypeDatabase(QWidget):
                 file_id.write( '{\n')
                 file_id.write( '    echo "$SEP"\n')
                 file_id.write(f'    echo "Building the genotype database from {os.path.basename(file_path)} ..."\n')
+                file_id.write(f'    source {miniforge3_bin_dir}/activate {genlib.get_gtimputation_env_code()}\n')
                 file_id.write( '    /usr/bin/time \\\n')
                 file_id.write(f'        {app_dir}/calculate-genotype-data.py \\\n')
                 file_id.write(f'            --threads={threads} \\\n')
@@ -1873,6 +1875,7 @@ class FormGenotypeDatabase(QWidget):
                 file_id.write( '            --tvi=NONE\n')
                 file_id.write( '    RC=$?\n')
                 file_id.write( '    if [ $RC -ne 0 ]; then manage_error calculate-genotype-data.py $RC; fi\n')
+                file_id.write( '    conda deactivate\n')
                 file_id.write( '    echo "Genotype database is built."\n')
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
@@ -1911,7 +1914,6 @@ class FormGenotypeDatabase(QWidget):
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
                 file_id.write( 'init\n')
-                file_id.write( 'activate_env_base\n')
                 file_id.write( 'save_params\n')
                 file_id.write( 'copy_file\n')
                 if file_format == 'tabular':
@@ -2005,7 +2007,7 @@ class FormSOMImputation(QWidget):
         self.lineedit_threads  = QLineEdit()
         self.lineedit_threads.setFixedWidth(fontmetrics.width('9'*6))
         self.lineedit_threads.editingFinished.connect(self.check_inputs)
-        self.lineedit_threads.setReadOnly(True)
+        self.lineedit_threads.setDisabled(True)
 
         # create and configure "label_gtdb"
         label_gtdb = QLabel()
@@ -2026,7 +2028,7 @@ class FormSOMImputation(QWidget):
         self.lineedit_file_format  = QLineEdit()
         self.lineedit_file_format.setFixedWidth(fontmetrics.width('9'*10))
         self.lineedit_file_format.editingFinished.connect(self.check_inputs)
-        self.lineedit_file_format.setReadOnly(True)
+        self.lineedit_file_format.setDisabled(True)
 
         # create and configure "label_mdc"
         label_mdc = QLabel()
@@ -2037,7 +2039,7 @@ class FormSOMImputation(QWidget):
         self.lineedit_mdc  = QLineEdit()
         self.lineedit_mdc.setFixedWidth(fontmetrics.width('9'*10))
         self.lineedit_mdc.editingFinished.connect(self.check_inputs)
-        self.lineedit_mdc.setReadOnly(True)
+        self.lineedit_mdc.setDisabled(True)
 
         # create and configure "label_file_path"
         label_file_path = QLabel()
@@ -2047,7 +2049,7 @@ class FormSOMImputation(QWidget):
         # create and configure "lineedit_file_path"
         self.lineedit_file_path  = QLineEdit()
         self.lineedit_file_path.editingFinished.connect(self.check_inputs)
-        self.lineedit_file_path.setReadOnly(True)
+        self.lineedit_file_path.setDisabled(True)
 
         # create and configure "label_xdim"
         label_xdim = QLabel()
@@ -2961,9 +2963,16 @@ class FormSOMImputation(QWidget):
         OK = True
         error_list = []
 
+        # get the Miniforge3 directory and its bin subdirectory
+        miniforge3_dir = ''
+        if sys.platform.startswith('win32'):
+            miniforge3_dir = genlib.get_miniforge3_dir_in_wsl()
+        elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+            miniforge3_dir = genlib.get_miniforge3_current_dir()
+        miniforge3_bin_dir = f'{miniforge3_dir}/bin'
+
         # get items from dictionary of application configuration
         app_dir = self.app_config_dict['Environment parameters']['app_dir']
-        miniconda3_bin_dir = self.app_config_dict['Environment parameters']['miniconda3_bin_dir']
 
         # set the parameters file
         params_file = f'{current_run_dir}/params.txt'
@@ -3005,7 +3014,7 @@ class FormSOMImputation(QWidget):
                 file_id.write(f'SNPS={snps}\n')
                 file_id.write(f'GIM={gim}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
-                file_id.write(f'export PATH={miniconda3_bin_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin\n')
+                file_id.write(f'export PATH={miniforge3_bin_dir}:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin\n')
                 file_id.write( 'SEP="#########################################"\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
                 file_id.write(f'STATUS_DIR={genlib.get_status_dir(current_run_dir)}\n')
@@ -3029,16 +3038,6 @@ class FormSOMImputation(QWidget):
                 file_id.write( '    echo "   xdim: $XDIM - ydim: $YDIM"\n')
                 file_id.write( '    echo "   sigma: $SIGMA - ilrate: $ILRATE - iter: $ITER"\n')
                 file_id.write( '    echo "   mr2: $MR2 - snps: $SNPS - gim: $GIM"\n')
-                file_id.write( '}\n')
-                file_id.write( '#-------------------------------------------------------------------------------\n')
-                file_id.write( 'function activate_env_base\n')
-                file_id.write( '{\n')
-                file_id.write( '    echo "$SEP"\n')
-                file_id.write( '    echo "Activating environment base ..."\n')
-                file_id.write(f'    source {miniconda3_bin_dir}/activate\n')
-                file_id.write( '    RC=$?\n')
-                file_id.write( '    if [ $RC -ne 0 ]; then manage_error conda $RC; fi\n')
-                file_id.write( '    echo "Environment is activated."\n')
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
                 file_id.write( 'function save_params\n')
@@ -3071,6 +3070,7 @@ class FormSOMImputation(QWidget):
                 file_id.write( '{\n')
                 file_id.write( '    echo "$SEP"\n')
                 file_id.write(f'    echo "Processing the SOM imputation of {os.path.basename(vcf_wmd_file)} ..."\n')
+                file_id.write(f'    source {miniforge3_bin_dir}/activate {genlib.get_gtimputation_env_code()}\n')
                 file_id.write( '    /usr/bin/time \\\n')
                 file_id.write(f'        {app_dir}/impute-md-som.py \\\n')
                 file_id.write( '            --threads=$THREADS \\\n')
@@ -3092,6 +3092,7 @@ class FormSOMImputation(QWidget):
                 file_id.write( '            --tvi=NONE\n')
                 file_id.write( '    RC=$?\n')
                 file_id.write( '    if [ $RC -ne 0 ]; then manage_error impute-md-som.py $RC; fi\n')
+                file_id.write( '    conda deactivate\n')
                 file_id.write( '    echo "SOM imputation is ended."\n')
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
@@ -3099,6 +3100,7 @@ class FormSOMImputation(QWidget):
                 file_id.write( '{\n')
                 file_id.write( '    echo "$SEP"\n')
                 file_id.write(f'    echo "Converting VCF file {os.path.basename(vcf_imputed_file)} to a file in tabular format ..."\n')
+                file_id.write(f'    source {miniforge3_bin_dir}/activate {genlib.get_gtimputation_env_code()}\n')
                 file_id.write( '    /usr/bin/time \\\n')
                 file_id.write(f'        {app_dir}/vcf2tab.py \\\n')
                 file_id.write(f'            --vcf={vcf_imputed_file} \\\n')
@@ -3109,6 +3111,7 @@ class FormSOMImputation(QWidget):
                 file_id.write( '            --tvi=NONE\n')
                 file_id.write( '    RC=$?\n')
                 file_id.write( '    if [ $RC -ne 0 ]; then manage_error vcf2tab.py $RC; fi\n')
+                file_id.write( '    conda deactivate\n')
                 file_id.write( '    echo "File is converted."\n')
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
@@ -3147,7 +3150,6 @@ class FormSOMImputation(QWidget):
                 file_id.write( '}\n')
                 file_id.write( '#-------------------------------------------------------------------------------\n')
                 file_id.write( 'init\n')
-                file_id.write( 'activate_env_base\n')
                 file_id.write( 'save_params\n')
                 file_id.write( 'run_som_imputation_process\n')
                 file_id.write( 'convert_vcf_to_tab\n')
@@ -3250,7 +3252,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_gtdb  = QLineEdit()
         self.lineedit_gtdb.setFixedWidth(fontmetrics.width('9'*20))
         self.lineedit_gtdb.editingFinished.connect(self.check_inputs)
-        self.lineedit_gtdb.setReadOnly(True)
+        self.lineedit_gtdb.setDisabled(True)
 
         # create and configure "label_file_format"
         label_file_format = QLabel()
@@ -3261,7 +3263,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_file_format  = QLineEdit()
         self.lineedit_file_format.setFixedWidth(fontmetrics.width('9'*10))
         self.lineedit_file_format.editingFinished.connect(self.check_inputs)
-        self.lineedit_file_format.setReadOnly(True)
+        self.lineedit_file_format.setDisabled(True)
 
         # create and configure "label_mdc"
         label_mdc = QLabel()
@@ -3272,7 +3274,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_mdc  = QLineEdit()
         self.lineedit_mdc.setFixedWidth(fontmetrics.width('9'*10))
         self.lineedit_mdc.editingFinished.connect(self.check_inputs)
-        self.lineedit_mdc.setReadOnly(True)
+        self.lineedit_mdc.setDisabled(True)
 
         # create and configure "label_file_path"
         label_file_path = QLabel()
@@ -3282,7 +3284,7 @@ class FormSOMImputationReview(QWidget):
         # create and configure "lineedit_file_path"
         self.lineedit_file_path  = QLineEdit()
         self.lineedit_file_path.editingFinished.connect(self.check_inputs)
-        self.lineedit_file_path.setReadOnly(True)
+        self.lineedit_file_path.setDisabled(True)
 
         # create and configure "label_xdim"
         label_xdim = QLabel()
@@ -3293,7 +3295,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_xdim  = QLineEdit()
         self.lineedit_xdim.setFixedWidth(fontmetrics.width('9'*6))
         self.lineedit_xdim.editingFinished.connect(self.check_inputs)
-        self.lineedit_xdim.setReadOnly(True)
+        self.lineedit_xdim.setDisabled(True)
 
         # create and configure "label_ydim"
         label_ydim = QLabel()
@@ -3304,7 +3306,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_ydim  = QLineEdit()
         self.lineedit_ydim.setFixedWidth(fontmetrics.width('9'*6))
         self.lineedit_ydim.editingFinished.connect(self.check_inputs)
-        self.lineedit_ydim.setReadOnly(True)
+        self.lineedit_ydim.setDisabled(True)
 
         # create and configure "label_sigma"
         label_sigma = QLabel()
@@ -3315,7 +3317,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_sigma  = QLineEdit()
         self.lineedit_sigma.setFixedWidth(fontmetrics.width('9'*6))
         self.lineedit_sigma.editingFinished.connect(self.check_inputs)
-        self.lineedit_sigma.setReadOnly(True)
+        self.lineedit_sigma.setDisabled(True)
 
         # create and configure "label_ilrate"
         label_ilrate = QLabel()
@@ -3326,7 +3328,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_ilrate  = QLineEdit()
         self.lineedit_ilrate.setFixedWidth(fontmetrics.width('9'*6))
         self.lineedit_ilrate.editingFinished.connect(self.check_inputs)
-        self.lineedit_ilrate.setReadOnly(True)
+        self.lineedit_ilrate.setDisabled(True)
 
         # create and configure "label_iterations"
         label_iterations = QLabel()
@@ -3337,7 +3339,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_iterations  = QLineEdit()
         self.lineedit_iterations.setFixedWidth(fontmetrics.width('9'*22))
         self.lineedit_iterations.editingFinished.connect(self.check_inputs)
-        self.lineedit_iterations.setReadOnly(True)
+        self.lineedit_iterations.setDisabled(True)
 
         # create and configure "label_empty"
         label_empty = QLabel()
@@ -3381,7 +3383,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_mr2  = QLineEdit()
         self.lineedit_mr2.setFixedWidth(fontmetrics.width('9'*6))
         self.lineedit_mr2.editingFinished.connect(self.check_inputs)
-        self.lineedit_mr2.setReadOnly(True)
+        self.lineedit_mr2.setDisabled(True)
 
         # create and configure "label_snps"
         label_snps = QLabel()
@@ -3392,7 +3394,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_snps  = QLineEdit()
         self.lineedit_snps.setFixedWidth(fontmetrics.width('9'*6))
         self.lineedit_snps.editingFinished.connect(self.check_inputs)
-        self.lineedit_snps.setReadOnly(True)
+        self.lineedit_snps.setDisabled(True)
 
         # create and configure "label_gim"
         label_gim = QLabel()
@@ -3403,7 +3405,7 @@ class FormSOMImputationReview(QWidget):
         self.lineedit_gim = QLineEdit()
         self.lineedit_gim.setFixedWidth(fontmetrics.width('9'*22))
         self.lineedit_gim.editingFinished.connect(self.check_inputs)
-        self.lineedit_gim.setReadOnly(True)
+        self.lineedit_gim.setDisabled(True)
 
         # create and configure "gridlayout_snpsparam"
         gridlayout_snpsparam = QGridLayout()

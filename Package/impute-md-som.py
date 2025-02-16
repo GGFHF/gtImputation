@@ -243,7 +243,7 @@ def check_args(args):
     if args.tvi_list is None or args.tvi_list == 'NONE':
         args.tvi_list = []
     else:
-        args.tvi_list = genlib.split_literal_to_string_list(args.tvi_list)
+        args.tvi_list = genlib.split_literal_to_text_list(args.tvi_list)
 
     # if there are errors, exit with exception
     if not OK:
@@ -580,6 +580,7 @@ def process_variant(thread_id, conn, semaphore, minimum_r2, r_estimator, snps_nu
             pseudobinary_sample_gt_list_2 = genlib.split_literal_to_integer_list(snp_data_dict_2['sample_gt_list'])
 
             for i in range(sample_number):
+                allele_list = []
                 # 0b00 -> 0
                 if pseudobinary_sample_gt_list_2[i] == 0:
                     allele_list = [ref_2, ref_2]
@@ -636,6 +637,8 @@ def process_variant(thread_id, conn, semaphore, minimum_r2, r_estimator, snps_nu
             # 0b11 -> 3
             elif pseudobinary_sample_gt_list_1[i] == 3:
                 counter_1_1 += 1
+        sample_gt_left_mf = -1
+        sample_gt_right_mf = -1
         if counter_0_0 > 0 or counter_0_1 > 0 or counter_1_1 > 0:
             if counter_0_0  == max(counter_0_0, counter_0_1, counter_1_1):
                 sample_gt_left_mf = 0
@@ -684,8 +687,11 @@ def process_variant(thread_id, conn, semaphore, minimum_r2, r_estimator, snps_nu
             # create a new SOM x * y instance and train the SOM algorith
             som_shape_tup = (xdim, ydim)
             som = minisom.MiniSom(x=som_shape_tup[0], y=som_shape_tup[1], input_len=len(input_data_list[0]),
-                                sigma=sigma, learning_rate=learning_rate, decay_function='asymptotic_decay',
+                                sigma=sigma, learning_rate=learning_rate, decay_function=minisom.asymptotic_decay,
                                 neighborhood_function='gaussian', topology='rectangular', activation_distance='euclidean', random_seed=None)
+            # -- som = minisom.MiniSom(x=som_shape_tup[0], y=som_shape_tup[1], input_len=len(input_data_list[0]),
+            # --                     sigma=sigma, learning_rate=learning_rate, decay_function='asymptotic_decay',
+            # --                     neighborhood_function='gaussian', topology='rectangular', activation_distance='euclidean', random_seed=None)
 
             # initialize the weights to span the first two principal components
             som.pca_weights_init(data=training_data_list)
@@ -941,6 +947,7 @@ def get_most_related_sample_id(kinship_dict, r_estimator, sample_wmd_id, related
 
     # get the sample identication with the highest kinship value
     for related_sample_id in related_sample_id_list:
+        r = -999
         if sample_wmd_id < related_sample_id:
             if r_estimator == 'rbeta':
                 r = kinship_dict[sample_wmd_id][related_sample_id]['rbeta']

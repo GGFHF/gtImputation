@@ -75,7 +75,7 @@ def build_parser():
     text = f'{genlib.get_app_long_name()} v{genlib.get_app_version()} - {os.path.basename(__file__)}\n\n{description}\n'
     usage = f'\r{text.ljust(len("usage:"))}\nUsage: {os.path.basename(__file__)} arguments'
     parser = argparse.ArgumentParser(usage=usage)
-    parser._optionals.title = 'Arguments'    #pylint: disable=protected-access
+    parser._optionals.title = 'Arguments'    # pylint: disable=protected-access
     parser.add_argument('--threads', dest='threads_num', help='Number of threads (mandatory).')
     parser.add_argument('--gtdb', dest='genotype_database', help='Path of the genotype database (mandatory).')
     parser.add_argument('--vcf', dest='vcf_file', help='Path of the input VCF file (mandatory).')
@@ -141,7 +141,7 @@ def check_args(args):
     if args.tvi_list is None or args.tvi_list == 'NONE':
         args.tvi_list = []
     else:
-        args.tvi_list = genlib.split_literal_to_string_list(args.tvi_list)
+        args.tvi_list = genlib.split_literal_to_text_list(args.tvi_list)
 
     # if there are errors, exit with exception
     if not OK:
@@ -477,7 +477,7 @@ def calculate_genotype_data(conn, threads_num, vcf_file, tvi_list):
     snps_counter = 0
     snps_total = len(snp_id_list_1)
 
-    # create the semaphore to control databases accesses
+    # create the semaphore to control database accesses
     semaphore = Semaphore(1)
 
     # calculate the linkage disequilibrium between each pair of SNPs

@@ -48,6 +48,11 @@ try:
 except Exception as e:
     raise genlib.ProgramException('', 'S002', 'PyQt5')
 
+try:
+    import minisom    # pylint: disable=unused-import
+except Exception as e:
+    raise genlib.ProgramException('', 'S002', 'MiniSom')
+
 import bioinfosw
 import configuration
 import dialogs
@@ -125,10 +130,15 @@ class MainWindow(QMainWindow):
         action_browse_config_file.setStatusTip(f'Browse the {genlib.get_app_short_name()} config file.')
         action_browse_config_file.triggered.connect(self.action_browse_config_file_clicked)
 
-        # create and configure "action_install_miniconda3"
-        action_install_miniconda3 = QAction('Miniconda3 and additional infrastructure software', self)
-        action_install_miniconda3.setStatusTip('Install Miniconda3 and additional infrastructure software.')
-        action_install_miniconda3.triggered.connect(self.action_install_miniconda3_clicked)
+        # create and configure "action_install_miniforge3"
+        action_install_miniforge3 = QAction('Miniforge3 (Conda infrastructure) on WSL', self)
+        action_install_miniforge3.setStatusTip('Install Miniforge3 (Conda infrastructure) on WSL.')
+        action_install_miniforge3.triggered.connect(self.action_install_miniforge3_clicked)
+
+        # create and configure "action_install_gtimputation_env"
+        action_install_gtimputation_env = QAction(f'{genlib.get_gtimputation_env_name()} on WSL', self)
+        action_install_gtimputation_env.setStatusTip(f'Create {genlib.get_gtimputation_env_name()} on WSL.')
+        action_install_gtimputation_env.triggered.connect(self.action_install_gtimputation_env_clicked)
 
         # create and configure "action_run_naive_process"
         action_run_naive_process = QAction('Run imputation process', self)
@@ -191,8 +201,12 @@ class MainWindow(QMainWindow):
         menu_configuration.addAction(action_recreate_config_file)
         menu_configuration.addAction(action_browse_config_file)
         menu_configuration.addSeparator()
-        submenu_bioinfo = menu_configuration.addMenu('Bioinfo software installation')
-        submenu_bioinfo.addAction(action_install_miniconda3)
+        if sys.platform.startswith('win32'):
+            submenu_bioinfo = menu_configuration.addMenu('Bioinfo software installation')
+            submenu_bioinfo.addAction(action_install_miniforge3)
+            submenu_bioinfo.addAction(action_install_gtimputation_env)
+        elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+            pass
 
         # create and configure "menu_imputation" and its submenus
         menu_imputation = menubar.addMenu('&Imputation')
@@ -297,48 +311,84 @@ class MainWindow(QMainWindow):
         if self.current_subwindow is not None:
             self.current_subwindow.close()
 
-        # create a new subwindow to perform the action
-        subwindow = configuration.FormBrowseConfigFile(self)
+        # if dependencies are OK
+        if self.check_config_file():
 
-        # create "widget_central"
-        widget_central = QWidget(self)
+            # create a new subwindow to perform the action
+            subwindow = configuration.FormBrowseConfigFile(self)
 
-        # create and configure "v_box_layout"
-        v_box_layout = QVBoxLayout(widget_central)
-        v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
+            # create "widget_central"
+            widget_central = QWidget(self)
 
-        # set the central widget in "MainWindow"
-        self.setCentralWidget(widget_central)
+            # create and configure "v_box_layout"
+            v_box_layout = QVBoxLayout(widget_central)
+            v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
 
-        # save the current subwindow
-        self.current_subwindow = subwindow
+            # set the central widget in "MainWindow"
+            self.setCentralWidget(widget_central)
+
+            # save the current subwindow
+            self.current_subwindow = subwindow
 
     #---------------
 
-    def action_install_miniconda3_clicked(self):
+    def action_install_miniforge3_clicked(self):
         '''
-        Install Miniconda3 software (Conda infrastructure).
+        Install the Miniforge3 software (Conda infrastructure).
         '''
 
         # close the existing subwindow
         if self.current_subwindow is not None:
             self.current_subwindow.close()
 
-        # create a new subwindow to perform the action
-        subwindow = bioinfosw.FormInstallBioinfoSoftware(self, genlib.get_miniconda3_code(), genlib.get_miniconda3_name())
+        # if dependencies are OK
+        if self.check_config_file():
 
-        # create "widget_central"
-        widget_central = QWidget(self)
+            # create a new subwindow to perform the action
+            subwindow = bioinfosw.FormInstallBioinfoSoftware(self, genlib.get_miniforge3_code(), genlib.get_miniforge3_name())
 
-        # create and configure "v_box_layout"
-        v_box_layout = QVBoxLayout(widget_central)
-        v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
+            # create "widget_central"
+            widget_central = QWidget(self)
 
-        # set the central widget in "MainWindow"
-        self.setCentralWidget(widget_central)
+            # create and configure "v_box_layout"
+            v_box_layout = QVBoxLayout(widget_central)
+            v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
 
-        # save the current subwindow
-        self.current_subwindow = subwindow
+            # set the central widget in "MainWindow"
+            self.setCentralWidget(widget_central)
+
+            # save the current subwindow
+            self.current_subwindow = subwindow
+
+    #---------------
+
+    def action_install_gtimputation_env_clicked(self):
+        '''
+        Install the gtImputation environment on WSL.
+        '''
+
+        # close the existing subwindow
+        if self.current_subwindow is not None:
+            self.current_subwindow.close()
+
+        # if dependencies are OK
+        if self.check_config_file() and self.check_miniforge3():
+
+            # create a new subwindow to perform the action
+            subwindow = bioinfosw.FormInstallBioinfoSoftware(self, genlib.get_gtimputation_env_code(), genlib.get_gtimputation_env_name())
+
+            # create "widget_central"
+            widget_central = QWidget(self)
+
+            # create and configure "v_box_layout"
+            v_box_layout = QVBoxLayout(widget_central)
+            v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
+
+            # set the central widget in "MainWindow"
+            self.setCentralWidget(widget_central)
+
+            # save the current subwindow
+            self.current_subwindow = subwindow
 
     #---------------
 
@@ -351,21 +401,24 @@ class MainWindow(QMainWindow):
         if self.current_subwindow is not None:
             self.current_subwindow.close()
 
-        # create a new subwindow to perform the action
-        subwindow = imputations.FormNaiveImputation(self)
+        # if dependencies are OK
+        if self.check_config_file() and self.check_miniforge3() and self.check_gtimputation_env():
 
-        # create "widget_central"
-        widget_central = QWidget(self)
+            # create a new subwindow to perform the action
+            subwindow = imputations.FormNaiveImputation(self)
 
-        # create and configure "v_box_layout"
-        v_box_layout = QVBoxLayout(widget_central)
-        v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
+            # create "widget_central"
+            widget_central = QWidget(self)
 
-        # set the central widget in "MainWindow"
-        self.setCentralWidget(widget_central)
+            # create and configure "v_box_layout"
+            v_box_layout = QVBoxLayout(widget_central)
+            v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
 
-        # save the current subwindow
-        self.current_subwindow = subwindow
+            # set the central widget in "MainWindow"
+            self.setCentralWidget(widget_central)
+
+            # save the current subwindow
+            self.current_subwindow = subwindow
 
     #---------------
 
@@ -378,21 +431,24 @@ class MainWindow(QMainWindow):
         if self.current_subwindow is not None:
             self.current_subwindow.close()
 
-        # create a new subwindow to perform the action
-        subwindow = imputations.FormNaiveImputationReview(self)
+        # if dependencies are OK
+        if self.check_config_file():
 
-        # create "widget_central"
-        widget_central = QWidget(self)
+            # create a new subwindow to perform the action
+            subwindow = imputations.FormNaiveImputationReview(self)
 
-        # create and configure "v_box_layout"
-        v_box_layout = QVBoxLayout(widget_central)
-        v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
+            # create "widget_central"
+            widget_central = QWidget(self)
 
-        # set the central widget in "MainWindow"
-        self.setCentralWidget(widget_central)
+            # create and configure "v_box_layout"
+            v_box_layout = QVBoxLayout(widget_central)
+            v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
 
-        # save the current subwindow
-        self.current_subwindow = subwindow
+            # set the central widget in "MainWindow"
+            self.setCentralWidget(widget_central)
+
+            # save the current subwindow
+            self.current_subwindow = subwindow
 
     #---------------
 
@@ -405,21 +461,24 @@ class MainWindow(QMainWindow):
         if self.current_subwindow is not None:
             self.current_subwindow.close()
 
-        # create a new subwindow to perform the action
-        subwindow = imputations.FormGenotypeDatabase(self)
+        # if dependencies are OK
+        if self.check_config_file() and self.check_miniforge3() and self.check_gtimputation_env():
 
-        # create "widget_central"
-        widget_central = QWidget(self)
+            # create a new subwindow to perform the action
+            subwindow = imputations.FormGenotypeDatabase(self)
 
-        # create and configure "v_box_layout"
-        v_box_layout = QVBoxLayout(widget_central)
-        v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
+            # create "widget_central"
+            widget_central = QWidget(self)
 
-        # set the central widget in "MainWindow"
-        self.setCentralWidget(widget_central)
+            # create and configure "v_box_layout"
+            v_box_layout = QVBoxLayout(widget_central)
+            v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
 
-        # save the current subwindow
-        self.current_subwindow = subwindow
+            # set the central widget in "MainWindow"
+            self.setCentralWidget(widget_central)
+
+            # save the current subwindow
+            self.current_subwindow = subwindow
 
     #---------------
 
@@ -432,21 +491,24 @@ class MainWindow(QMainWindow):
         if self.current_subwindow is not None:
             self.current_subwindow.close()
 
-        # create a new subwindow to perform the action
-        subwindow = imputations.FormSOMImputation(self)
+        # if dependencies are OK
+        if self.check_config_file() and self.check_miniforge3() and self.check_gtimputation_env():
 
-        # create "widget_central"
-        widget_central = QWidget(self)
+            # create a new subwindow to perform the action
+            subwindow = imputations.FormSOMImputation(self)
 
-        # create and configure "v_box_layout"
-        v_box_layout = QVBoxLayout(widget_central)
-        v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
+            # create "widget_central"
+            widget_central = QWidget(self)
 
-        # set the central widget in "MainWindow"
-        self.setCentralWidget(widget_central)
+            # create and configure "v_box_layout"
+            v_box_layout = QVBoxLayout(widget_central)
+            v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
 
-        # save the current subwindow
-        self.current_subwindow = subwindow
+            # set the central widget in "MainWindow"
+            self.setCentralWidget(widget_central)
+
+            # save the current subwindow
+            self.current_subwindow = subwindow
 
     #---------------
 
@@ -459,21 +521,24 @@ class MainWindow(QMainWindow):
         if self.current_subwindow is not None:
             self.current_subwindow.close()
 
-        # create a new subwindow to perform the action
-        subwindow = imputations.FormSOMImputationReview(self)
+        # if dependencies are OK
+        if self.check_config_file():
 
-        # create "widget_central"
-        widget_central = QWidget(self)
+            # create a new subwindow to perform the action
+            subwindow = imputations.FormSOMImputationReview(self)
 
-        # create and configure "v_box_layout"
-        v_box_layout = QVBoxLayout(widget_central)
-        v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
+            # create "widget_central"
+            widget_central = QWidget(self)
 
-        # set the central widget in "MainWindow"
-        self.setCentralWidget(widget_central)
+            # create and configure "v_box_layout"
+            v_box_layout = QVBoxLayout(widget_central)
+            v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
 
-        # save the current subwindow
-        self.current_subwindow = subwindow
+            # set the central widget in "MainWindow"
+            self.setCentralWidget(widget_central)
+
+            # save the current subwindow
+            self.current_subwindow = subwindow
 
     #---------------
 
@@ -513,21 +578,24 @@ class MainWindow(QMainWindow):
         if self.current_subwindow is not None:
             self.current_subwindow.close()
 
-        # create a new subwindow to perform the action
-        subwindow = logs.FormBrowseResultLogs(self)
+        # if dependencies are OK
+        if self.check_config_file():
 
-        # create "widget_central"
-        widget_central = QWidget(self)
+            # create a new subwindow to perform the action
+            subwindow = logs.FormBrowseResultLogs(self)
 
-        # create and configure "v_box_layout"
-        v_box_layout = QVBoxLayout(widget_central)
-        v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
+            # create "widget_central"
+            widget_central = QWidget(self)
 
-        # set the central widget in "MainWindow"
-        self.setCentralWidget(widget_central)
+            # create and configure "v_box_layout"
+            v_box_layout = QVBoxLayout(widget_central)
+            v_box_layout.addWidget(subwindow, alignment=Qt.AlignCenter)
 
-        # save the current subwindow
-        self.current_subwindow = subwindow
+            # set the central widget in "MainWindow"
+            self.setCentralWidget(widget_central)
+
+            # save the current subwindow
+            self.current_subwindow = subwindow
 
     #---------------
 
@@ -582,6 +650,123 @@ class MainWindow(QMainWindow):
 
     #---------------
 
+    def check_config_file(self):
+        '''
+        Check if the config file exists.
+        '''
+
+        # initialize the control variable
+        OK = True
+
+        # check if config file exists
+        if not os.path.isfile(genlib.get_app_config_file()):
+
+            # set control variable
+            OK = False
+
+            # set None in the current subwindow
+            self.current_subwindow = None
+
+            # set the bakcground image in "MainWindow"
+            self.set_background_image()
+
+            # show message
+            title = f'{genlib.get_app_short_name()} - Warning'
+            text = f'The config file does not exist.\n\nRecreate it using the menu item:\nMain menu > Configuration > Recreate {genlib.get_app_short_name()} config file'
+            QMessageBox.warning(self, title, text, buttons=QMessageBox.Ok)
+
+        # return the contro variable
+        return OK
+
+    #---------------
+
+    def check_miniforge3(self):
+        '''
+        Check if Miniforge3 is installed on WSL.
+        '''
+
+
+        # initialize the control variable
+        OK = True
+
+        # check if Miniforge3 is installed on WSL
+        if OK and sys.platform.startswith('win32'):
+
+            # get the Miniforge3 bin directory
+            miniforge3_bin_dir = ''
+            user = genlib.get_wsl_envvar('USER')
+            wsl_distro_name = genlib.get_wsl_envvar('WSL_DISTRO_NAME')
+            if user == genlib.get_na() or wsl_distro_name == genlib.get_na():
+                OK = False
+            else:
+                miniforge3_bin_dir = f'\\\\wsl$\\{wsl_distro_name}\\home\\{user}\\{genlib.get_miniforge3_dir()}'
+
+            # check if the Miniforge3 bin directory exits
+            if OK:
+                if not os.path.isdir(miniforge3_bin_dir):
+
+                    # set control variable
+                    OK = False
+
+                    # set None in the current subwindow
+                    self.current_subwindow = None
+
+                    # set the bakcground image in "MainWindow"
+                    self.set_background_image()
+
+                    # show message
+                    title = f'{genlib.get_app_short_name()} - Warning'
+                    text = 'Miniforge3 is not installed.\n\nInstall it using the menu item:\nMain menu > Configuration > Bioinfo software installation > Miniforge3 (Conda infrastructure) on WSL'
+                    QMessageBox.warning(self, title, text, buttons=QMessageBox.Ok)
+        # return the contro variable
+        return OK
+
+    #---------------
+
+    def check_gtimputation_env(self):
+        '''
+        Check if the gtImputation environment is created on WSL.
+        '''
+
+
+        # initialize the control variable
+        OK = True
+
+        # check if gtImputation environment is created on WSL
+        if OK and sys.platform.startswith('win32'):
+
+            # get the gtImputatrion environment directory
+            gtimputation_env_dir = ''
+            user = genlib.get_wsl_envvar('USER')
+            wsl_distro_name = genlib.get_wsl_envvar('WSL_DISTRO_NAME')
+            if user == genlib.get_na() or wsl_distro_name == genlib.get_na():
+                OK = False
+            else:
+                gtimputation_env_dir = f'\\\\wsl$\\{wsl_distro_name}\\home\\{user}\\{genlib.get_miniforge3_dir()}\\envs\\{genlib.get_gtimputation_env_code()}'
+
+            # check if the gtImputation environment is created directory exits
+            if OK:
+                if not os.path.isdir(gtimputation_env_dir):
+
+                    # set control variable
+                    OK = False
+
+                    # set None in the current subwindow
+                    self.current_subwindow = None
+
+                    # set the bakcground image in "MainWindow"
+                    self.set_background_image()
+
+                    # show message
+                    title = f'{genlib.get_app_short_name()} - Warning'
+                    text = f'{genlib.get_gtimputation_env_name()} is not installed.\n\nInstall it using the menu item:\nMain menu > Configuration > Bioinfo software installation > {genlib.get_gtimputation_env_name()} on WSL'
+                    QMessageBox.warning(self, title, text, buttons=QMessageBox.Ok)
+
+        # return the contro variable
+        return OK
+
+    #---------------
+
     def warn_unavailable_process(self):
         '''
         Show a message warning the process is unavailable.
@@ -613,17 +798,26 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # check the Python version
-    if sys.version_info[0] == 3 and sys.version_info[1] >= 8:
+    if sys.version_info[0] == 3 and sys.version_info[1] >= 12:
         pass
     else:
-        print('*** ERROR: Python 3.8 or greater is required.')
+        print('*** ERROR: Python 3.12 or greater is required.')
         sys.exit(1)
+
+    # check conda accessibility
+    if sys.platform.startswith('win32'):
+        pass
+    elif sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
+        environment_path = os.getenv('CONDA_PREFIX')
+        if environment_path is None:
+            print('*** ERROR: Conda software is not accessible.')
+            sys.exit(1)
 
     # check if the current directory is gtImputation home directory
     current_dir = os.getcwd()
     program_name = os.path.basename(__file__)
     if not os.path.isfile(os.path.join(current_dir, program_name)):
-        print(f'*** ERROR: {program_name} has to be run in the gtImputation home directory.')
+        print(f'*** ERROR: {program_name} has to be run in the {genlib.get_app_short_name()} home directory.')
         sys.exit(1)
 
     # set the font

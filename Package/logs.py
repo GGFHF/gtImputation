@@ -352,6 +352,7 @@ class FormBrowseSubmittingLogs(QWidget):
         log_dir = genlib.get_log_dir()
 
         # set the command to get the log files in log directory
+        command = ''
         if sys.platform.startswith('linux') or sys.platform.startswith('darwin'):
             if process == 'all':
                 command = f'ls {log_dir}/*.txt'
